@@ -1,0 +1,68 @@
+import type { Group } from '@/types'
+
+export const seedGroups: Group[] = [
+  {
+    id: 'g1',
+    name: 'Product Management Professionals',
+    description: 'A community for PMs to share insights, frameworks, and career advice.',
+    memberIds: ['u1', 'u4', 'u5', 'u15'],
+    imageUrl: 'https://picsum.photos/seed/group1/200/200',
+    privacy: 'public',
+  },
+  {
+    id: 'g2',
+    name: 'React Developers Network',
+    description: 'Discuss React, hooks, performance, and the latest ecosystem news.',
+    memberIds: ['u2', 'u6', 'u10'],
+    imageUrl: 'https://picsum.photos/seed/group2/200/200',
+    privacy: 'public',
+  },
+  {
+    id: 'g3',
+    name: 'UX Design Community',
+    description: 'Share portfolios, critiques, and design resources.',
+    memberIds: ['u3', 'u1'],
+    imageUrl: 'https://picsum.photos/seed/group3/200/200',
+    privacy: 'public',
+  },
+  {
+    id: 'g4',
+    name: 'Startup Founders Hub',
+    description: 'Founders supporting founders — fundraising, hiring, growth.',
+    memberIds: ['u8', 'u4'],
+    imageUrl: 'https://picsum.photos/seed/group4/200/200',
+    privacy: 'private',
+  },
+  {
+    id: 'g5',
+    name: 'Women in Tech Leadership',
+    description: 'Empowering women leaders in technology.',
+    memberIds: ['u1', 'u3', 'u13'],
+    imageUrl: 'https://picsum.photos/seed/group5/200/200',
+    privacy: 'public',
+  },
+  {
+    id: 'g6',
+    name: 'Remote Work Best Practices',
+    description: 'Tips and tools for thriving in remote and hybrid work.',
+    memberIds: ['u2', 'u10', 'u9'],
+    imageUrl: 'https://picsum.photos/seed/group6/200/200',
+    privacy: 'public',
+  },
+  {
+    id: 'g7',
+    name: 'AI & Machine Learning',
+    description: 'Latest in AI research, applications, and career paths.',
+    memberIds: ['u6', 'u4'],
+    imageUrl: 'https://picsum.photos/seed/group7/200/200',
+    privacy: 'public',
+  },
+  {
+    id: 'g8',
+    name: 'Sales & Business Development',
+    description: 'Strategies for enterprise sales and partnerships.',
+    memberIds: ['u12', 'u5'],
+    imageUrl: 'https://picsum.photos/seed/group8/200/200',
+    privacy: 'public',
+  },
+]

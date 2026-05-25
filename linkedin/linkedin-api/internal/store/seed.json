@@ -1,0 +1,2244 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "email": "demo@linkedin.local",
+      "password": "password",
+      "username": "jane-doe",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "headline": "Senior Product Manager at TechCorp",
+      "location": "San Francisco, CA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=1",
+      "coverUrl": "https://picsum.photos/seed/cover1/1200/300",
+      "about": "Product leader passionate about building delightful B2B experiences. 10+ years in SaaS.",
+      "connectionIds": [
+        "u2",
+        "u3",
+        "u4",
+        "u5"
+      ],
+      "followerIds": [
+        "u6",
+        "u7"
+      ],
+      "followingIds": [
+        "u2",
+        "u8"
+      ],
+      "isPremium": true,
+      "companyId": "c1",
+      "experience": [
+        {
+          "id": "e1",
+          "title": "Senior Product Manager",
+          "company": "TechCorp",
+          "location": "San Francisco, CA",
+          "startDate": "2021-03",
+          "current": true,
+          "description": "Leading growth initiatives for enterprise platform."
+        },
+        {
+          "id": "e2",
+          "title": "Product Manager",
+          "company": "StartupXYZ",
+          "location": "Remote",
+          "startDate": "2018-06",
+          "endDate": "2021-02",
+          "description": "Shipped mobile app from 0 to 500K users."
+        }
+      ],
+      "education": [
+        {
+          "id": "ed1",
+          "school": "Stanford University",
+          "degree": "MBA",
+          "field": "Business",
+          "startDate": "2016",
+          "endDate": "2018"
+        }
+      ],
+      "skills": [
+        {
+          "id": "s1",
+          "name": "Product Strategy",
+          "endorsements": 42
+        },
+        {
+          "id": "s2",
+          "name": "Agile",
+          "endorsements": 28
+        },
+        {
+          "id": "s3",
+          "name": "User Research",
+          "endorsements": 35
+        }
+      ]
+    },
+    {
+      "id": "u2",
+      "email": "john.smith@email.com",
+      "password": "password",
+      "username": "john-smith",
+      "firstName": "John",
+      "lastName": "Smith",
+      "headline": "Software Engineer at TechCorp",
+      "location": "San Francisco, CA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=2",
+      "coverUrl": "https://picsum.photos/seed/cover2/1200/300",
+      "about": "Full-stack developer. React, Node, TypeScript enthusiast.",
+      "connectionIds": [
+        "u1",
+        "u3",
+        "u6"
+      ],
+      "followerIds": [],
+      "followingIds": [
+        "u1"
+      ],
+      "companyId": "c1",
+      "experience": [
+        {
+          "id": "e3",
+          "title": "Senior Software Engineer",
+          "company": "TechCorp",
+          "startDate": "2020-01",
+          "current": true
+        }
+      ],
+      "education": [
+        {
+          "id": "ed2",
+          "school": "UC Berkeley",
+          "degree": "BS",
+          "field": "Computer Science",
+          "startDate": "2012",
+          "endDate": "2016"
+        }
+      ],
+      "skills": [
+        {
+          "id": "s4",
+          "name": "React",
+          "endorsements": 55
+        },
+        {
+          "id": "s5",
+          "name": "TypeScript",
+          "endorsements": 48
+        }
+      ]
+    },
+    {
+      "id": "u3",
+      "email": "sarah.chen@email.com",
+      "password": "password",
+      "username": "sarah-chen",
+      "firstName": "Sarah",
+      "lastName": "Chen",
+      "headline": "UX Designer | Design Systems",
+      "location": "New York, NY",
+      "avatarUrl": "https://i.pravatar.cc/150?img=3",
+      "coverUrl": "https://picsum.photos/seed/cover3/1200/300",
+      "about": "Crafting accessible, beautiful interfaces.",
+      "connectionIds": [
+        "u1",
+        "u2",
+        "u4"
+      ],
+      "followerIds": [
+        "u5"
+      ],
+      "followingIds": [],
+      "experience": [
+        {
+          "id": "e4",
+          "title": "Lead UX Designer",
+          "company": "DesignStudio",
+          "startDate": "2019-05",
+          "current": true
+        }
+      ],
+      "education": [],
+      "skills": [
+        {
+          "id": "s6",
+          "name": "Figma",
+          "endorsements": 62
+        },
+        {
+          "id": "s7",
+          "name": "Design Systems",
+          "endorsements": 40
+        }
+      ]
+    },
+    {
+      "id": "u4",
+      "email": "mike.johnson@email.com",
+      "password": "password",
+      "username": "mike-johnson",
+      "firstName": "Mike",
+      "lastName": "Johnson",
+      "headline": "VP Engineering at InnovateLabs",
+      "location": "Austin, TX",
+      "avatarUrl": "https://i.pravatar.cc/150?img=4",
+      "coverUrl": "https://picsum.photos/seed/cover4/1200/300",
+      "about": "Building high-performing engineering teams.",
+      "connectionIds": [
+        "u1",
+        "u3",
+        "u5"
+      ],
+      "followerIds": [],
+      "followingIds": [],
+      "companyId": "c2",
+      "experience": [
+        {
+          "id": "e5",
+          "title": "VP Engineering",
+          "company": "InnovateLabs",
+          "startDate": "2017-01",
+          "current": true
+        }
+      ],
+      "education": [],
+      "skills": [
+        {
+          "id": "s8",
+          "name": "Leadership",
+          "endorsements": 30
+        }
+      ]
+    },
+    {
+      "id": "u5",
+      "email": "emma.wilson@email.com",
+      "password": "password",
+      "username": "emma-wilson",
+      "firstName": "Emma",
+      "lastName": "Wilson",
+      "headline": "Marketing Director | B2B SaaS",
+      "location": "Chicago, IL",
+      "avatarUrl": "https://i.pravatar.cc/150?img=5",
+      "coverUrl": "https://picsum.photos/seed/cover5/1200/300",
+      "about": "Growth marketing and brand strategy.",
+      "connectionIds": [
+        "u1",
+        "u4"
+      ],
+      "followerIds": [],
+      "followingIds": [
+        "u3"
+      ],
+      "experience": [
+        {
+          "id": "e6",
+          "title": "Marketing Director",
+          "company": "GrowthCo",
+          "startDate": "2018-09",
+          "current": true
+        }
+      ],
+      "education": [],
+      "skills": [
+        {
+          "id": "s9",
+          "name": "Digital Marketing",
+          "endorsements": 22
+        }
+      ]
+    },
+    {
+      "id": "u6",
+      "email": "alex.brown@email.com",
+      "password": "password",
+      "username": "alex-brown",
+      "firstName": "Alex",
+      "lastName": "Brown",
+      "headline": "Data Scientist | ML",
+      "location": "Seattle, WA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=6",
+      "coverUrl": "https://picsum.photos/seed/cover6/1200/300",
+      "about": "Turning data into decisions.",
+      "connectionIds": [
+        "u2"
+      ],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": [
+        {
+          "id": "s10",
+          "name": "Python",
+          "endorsements": 18
+        }
+      ]
+    },
+    {
+      "id": "u7",
+      "email": "lisa.park@email.com",
+      "password": "password",
+      "username": "lisa-park",
+      "firstName": "Lisa",
+      "lastName": "Park",
+      "headline": "Recruiter | Tech Talent",
+      "location": "Los Angeles, CA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=7",
+      "coverUrl": "https://picsum.photos/seed/cover7/1200/300",
+      "about": "Connecting great people with great companies.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": [
+        {
+          "id": "s11",
+          "name": "Talent Acquisition",
+          "endorsements": 15
+        }
+      ]
+    },
+    {
+      "id": "u8",
+      "email": "david.lee@email.com",
+      "password": "password",
+      "username": "david-lee",
+      "firstName": "David",
+      "lastName": "Lee",
+      "headline": "Founder & CEO at NextWave",
+      "location": "Boston, MA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=8",
+      "coverUrl": "https://picsum.photos/seed/cover8/1200/300",
+      "about": "Serial entrepreneur. Building the future of work.",
+      "connectionIds": [],
+      "followerIds": [
+        "u1"
+      ],
+      "followingIds": [],
+      "companyId": "c3",
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u9",
+      "email": "rachel.green@email.com",
+      "password": "password",
+      "username": "rachel-green",
+      "firstName": "Rachel",
+      "lastName": "Green",
+      "headline": "Content Strategist",
+      "location": "Denver, CO",
+      "avatarUrl": "https://i.pravatar.cc/150?img=9",
+      "coverUrl": "https://picsum.photos/seed/cover9/1200/300",
+      "about": "Storytelling for brands that matter.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u10",
+      "email": "tom.harris@email.com",
+      "password": "password",
+      "username": "tom-harris",
+      "firstName": "Tom",
+      "lastName": "Harris",
+      "headline": "DevOps Engineer",
+      "location": "Portland, OR",
+      "avatarUrl": "https://i.pravatar.cc/150?img=10",
+      "coverUrl": "https://picsum.photos/seed/cover10/1200/300",
+      "about": "Kubernetes, CI/CD, cloud infrastructure.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u11",
+      "email": "nina.patel@email.com",
+      "password": "password",
+      "username": "nina-patel",
+      "firstName": "Nina",
+      "lastName": "Patel",
+      "headline": "Financial Analyst",
+      "location": "New York, NY",
+      "avatarUrl": "https://i.pravatar.cc/150?img=11",
+      "coverUrl": "https://picsum.photos/seed/cover11/1200/300",
+      "about": "Finance professional with fintech focus.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u12",
+      "email": "chris.martin@email.com",
+      "password": "password",
+      "username": "chris-martin",
+      "firstName": "Chris",
+      "lastName": "Martin",
+      "headline": "Sales Executive | Enterprise",
+      "location": "Miami, FL",
+      "avatarUrl": "https://i.pravatar.cc/150?img=12",
+      "coverUrl": "https://picsum.photos/seed/cover12/1200/300",
+      "about": "Helping enterprises transform with technology.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u13",
+      "email": "amy.kim@email.com",
+      "password": "password",
+      "username": "amy-kim",
+      "firstName": "Amy",
+      "lastName": "Kim",
+      "headline": "HR Business Partner",
+      "location": "San Jose, CA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=13",
+      "coverUrl": "https://picsum.photos/seed/cover13/1200/300",
+      "about": "People-first HR leader.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u14",
+      "email": "james.taylor@email.com",
+      "password": "password",
+      "username": "james-taylor",
+      "firstName": "James",
+      "lastName": "Taylor",
+      "headline": "Cybersecurity Specialist",
+      "location": "Washington, DC",
+      "avatarUrl": "https://i.pravatar.cc/150?img=14",
+      "coverUrl": "https://picsum.photos/seed/cover14/1200/300",
+      "about": "Protecting digital assets.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    },
+    {
+      "id": "u15",
+      "email": "olivia.white@email.com",
+      "password": "password",
+      "username": "olivia-white",
+      "firstName": "Olivia",
+      "lastName": "White",
+      "headline": "Project Manager | PMP",
+      "location": "Philadelphia, PA",
+      "avatarUrl": "https://i.pravatar.cc/150?img=15",
+      "coverUrl": "https://picsum.photos/seed/cover15/1200/300",
+      "about": "Delivering projects on time and on budget.",
+      "connectionIds": [],
+      "followerIds": [],
+      "followingIds": [],
+      "experience": [],
+      "education": [],
+      "skills": []
+    }
+  ],
+  "companies": [
+    {
+      "id": "c1",
+      "slug": "techcorp",
+      "name": "TechCorp",
+      "tagline": "Innovation at scale",
+      "industry": "Software Development",
+      "size": "5,001-10,000 employees",
+      "headquarters": "San Francisco, CA",
+      "about": "TechCorp builds enterprise software that powers the world's leading companies. We believe in innovation, inclusion, and impact.",
+      "logoUrl": "https://picsum.photos/seed/techcorp/100/100",
+      "bannerUrl": "https://picsum.photos/seed/techcorpbanner/1200/300",
+      "specialties": [
+        "SaaS",
+        "Cloud",
+        "AI",
+        "Enterprise"
+      ],
+      "followerIds": [
+        "u1",
+        "u2",
+        "u6"
+      ],
+      "employeeIds": [
+        "u1",
+        "u2"
+      ]
+    },
+    {
+      "id": "c2",
+      "slug": "innovatelabs",
+      "name": "InnovateLabs",
+      "tagline": "Research-driven innovation",
+      "industry": "Research",
+      "size": "501-1,000 employees",
+      "headquarters": "Austin, TX",
+      "about": "InnovateLabs pioneers breakthrough technologies in AI and robotics.",
+      "logoUrl": "https://picsum.photos/seed/innovate/100/100",
+      "bannerUrl": "https://picsum.photos/seed/innovatebanner/1200/300",
+      "specialties": [
+        "AI",
+        "Robotics",
+        "R&D"
+      ],
+      "followerIds": [
+        "u4"
+      ],
+      "employeeIds": [
+        "u4"
+      ]
+    },
+    {
+      "id": "c3",
+      "slug": "nextwave",
+      "name": "NextWave",
+      "tagline": "The future of work",
+      "industry": "Technology",
+      "size": "11-50 employees",
+      "headquarters": "Boston, MA",
+      "about": "NextWave is a startup reimagining how teams collaborate remotely.",
+      "logoUrl": "https://picsum.photos/seed/nextwave/100/100",
+      "bannerUrl": "https://picsum.photos/seed/nextwavebanner/1200/300",
+      "specialties": [
+        "Remote Work",
+        "Collaboration",
+        "Startups"
+      ],
+      "followerIds": [
+        "u8"
+      ],
+      "employeeIds": [
+        "u8"
+      ]
+    },
+    {
+      "id": "c4",
+      "slug": "designstudio",
+      "name": "DesignStudio",
+      "tagline": "Design that delights",
+      "industry": "Design Services",
+      "size": "51-200 employees",
+      "headquarters": "New York, NY",
+      "about": "Award-winning design agency for digital products.",
+      "logoUrl": "https://picsum.photos/seed/design/100/100",
+      "bannerUrl": "https://picsum.photos/seed/designbanner/1200/300",
+      "specialties": [
+        "UX",
+        "Branding",
+        "Design Systems"
+      ],
+      "followerIds": [
+        "u3"
+      ],
+      "employeeIds": [
+        "u3"
+      ]
+    },
+    {
+      "id": "c5",
+      "slug": "growthco",
+      "name": "GrowthCo",
+      "tagline": "Scale your brand",
+      "industry": "Marketing",
+      "size": "201-500 employees",
+      "headquarters": "Chicago, IL",
+      "about": "Full-service marketing agency for B2B brands.",
+      "logoUrl": "https://picsum.photos/seed/growth/100/100",
+      "bannerUrl": "https://picsum.photos/seed/growthbanner/1200/300",
+      "specialties": [
+        "Marketing",
+        "SEO",
+        "Content"
+      ],
+      "followerIds": [],
+      "employeeIds": [
+        "u5"
+      ]
+    },
+    {
+      "id": "c6",
+      "slug": "cloudnine",
+      "name": "CloudNine",
+      "tagline": "Infrastructure simplified",
+      "industry": "Cloud Computing",
+      "size": "1,001-5,000 employees",
+      "headquarters": "Seattle, WA",
+      "about": "Leading cloud infrastructure provider.",
+      "logoUrl": "https://picsum.photos/seed/cloud/100/100",
+      "bannerUrl": "https://picsum.photos/seed/cloudbanner/1200/300",
+      "specialties": [
+        "Cloud",
+        "DevOps",
+        "Kubernetes"
+      ],
+      "followerIds": [],
+      "employeeIds": []
+    },
+    {
+      "id": "c7",
+      "slug": "fintech-pro",
+      "name": "FinTech Pro",
+      "tagline": "Banking reimagined",
+      "industry": "Financial Services",
+      "size": "501-1,000 employees",
+      "headquarters": "New York, NY",
+      "about": "Modern financial technology for the digital age.",
+      "logoUrl": "https://picsum.photos/seed/fintech/100/100",
+      "bannerUrl": "https://picsum.photos/seed/fintechbanner/1200/300",
+      "specialties": [
+        "FinTech",
+        "Payments",
+        "Blockchain"
+      ],
+      "followerIds": [],
+      "employeeIds": []
+    },
+    {
+      "id": "c8",
+      "slug": "healthplus",
+      "name": "HealthPlus",
+      "tagline": "Better health outcomes",
+      "industry": "Healthcare",
+      "size": "10,001+ employees",
+      "headquarters": "Boston, MA",
+      "about": "Digital health solutions improving patient care worldwide.",
+      "logoUrl": "https://picsum.photos/seed/health/100/100",
+      "bannerUrl": "https://picsum.photos/seed/healthbanner/1200/300",
+      "specialties": [
+        "Healthcare",
+        "Telemedicine",
+        "Wellness"
+      ],
+      "followerIds": [],
+      "employeeIds": []
+    },
+    {
+      "id": "c9",
+      "slug": "edulearn",
+      "name": "EduLearn",
+      "tagline": "Learn without limits",
+      "industry": "E-Learning",
+      "size": "201-500 employees",
+      "headquarters": "Denver, CO",
+      "about": "Online education platform for professionals.",
+      "logoUrl": "https://picsum.photos/seed/edu/100/100",
+      "bannerUrl": "https://picsum.photos/seed/edubanner/1200/300",
+      "specialties": [
+        "Education",
+        "E-Learning",
+        "Certifications"
+      ],
+      "followerIds": [],
+      "employeeIds": []
+    },
+    {
+      "id": "c10",
+      "slug": "retailmax",
+      "name": "RetailMax",
+      "tagline": "Retail reinvented",
+      "industry": "Retail",
+      "size": "5,001-10,000 employees",
+      "headquarters": "Los Angeles, CA",
+      "about": "Omnichannel retail experiences for modern consumers.",
+      "logoUrl": "https://picsum.photos/seed/retail/100/100",
+      "bannerUrl": "https://picsum.photos/seed/retailbanner/1200/300",
+      "specialties": [
+        "Retail",
+        "E-commerce",
+        "Logistics"
+      ],
+      "followerIds": [],
+      "employeeIds": []
+    }
+  ],
+  "posts": [
+    {
+      "id": "p1",
+      "authorId": "u2",
+      "content": "Excited to share that our team just shipped a major React 19 migration! Huge thanks to everyone who contributed. 🚀",
+      "visibility": "anyone",
+      "createdAt": "2026-05-22T18:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "celebrate"
+        },
+        {
+          "userId": "u3",
+          "type": "like"
+        },
+        {
+          "userId": "u4",
+          "type": "insightful"
+        }
+      ],
+      "commentIds": [
+        "cm1",
+        "cm2"
+      ]
+    },
+    {
+      "id": "p2",
+      "authorId": "u1",
+      "content": "Three lessons from leading product teams in 2026:\n\n1. Ship smaller, learn faster\n2. Talk to customers weekly\n3. Celebrate wins publicly\n\nWhat would you add?",
+      "visibility": "anyone",
+      "createdAt": "2026-05-22T15:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u2",
+          "type": "like"
+        },
+        {
+          "userId": "u5",
+          "type": "insightful"
+        }
+      ],
+      "commentIds": [
+        "cm3"
+      ]
+    },
+    {
+      "id": "p3",
+      "authorId": "u3",
+      "content": "Just published our new design system documentation. Link in comments!",
+      "imageUrl": "https://picsum.photos/seed/designpost/600/400",
+      "visibility": "connections",
+      "createdAt": "2026-05-22T12:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "love"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p4",
+      "authorId": "u4",
+      "content": "Hiring alert: InnovateLabs is looking for senior engineers and engineering managers. DM me if interested!",
+      "visibility": "anyone",
+      "createdAt": "2026-05-22T08:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "support"
+        }
+      ],
+      "commentIds": [],
+      "companyId": "c2"
+    },
+    {
+      "id": "p5",
+      "authorId": "u5",
+      "content": "Marketing tip: Your best content comes from customer conversations, not competitor analysis.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-22T02:19:26.222Z",
+      "reactions": [],
+      "commentIds": []
+    },
+    {
+      "id": "p6",
+      "authorId": "u8",
+      "content": "We raised our Series B! Grateful to our investors and team.",
+      "articleUrl": "https://example.com/series-b",
+      "articleTitle": "NextWave raises $50M Series B",
+      "visibility": "anyone",
+      "createdAt": "2026-05-21T20:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "celebrate"
+        },
+        {
+          "userId": "u7",
+          "type": "celebrate"
+        }
+      ],
+      "commentIds": [],
+      "companyId": "c3"
+    },
+    {
+      "id": "p7",
+      "authorId": "u6",
+      "content": "Published a new article on building ML pipelines with Python. Check it out!",
+      "visibility": "anyone",
+      "createdAt": "2026-05-21T14:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u2",
+          "type": "insightful"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p8",
+      "authorId": "u1",
+      "content": "Great panel discussion at ProductCon today on AI in product development.",
+      "imageUrl": "https://picsum.photos/seed/conference/600/350",
+      "visibility": "anyone",
+      "createdAt": "2026-05-21T08:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u3",
+          "type": "like"
+        },
+        {
+          "userId": "u9",
+          "type": "like"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p9",
+      "authorId": "u7",
+      "content": "Open roles this week: 15 engineering positions across SF, NYC, and remote. Let me know who I should talk to!",
+      "visibility": "anyone",
+      "createdAt": "2026-05-20T20:19:26.222Z",
+      "reactions": [],
+      "commentIds": []
+    },
+    {
+      "id": "p10",
+      "authorId": "u2",
+      "content": "Weekend project: built a CLI tool for automating code reviews. Open sourcing soon.",
+      "visibility": "connections",
+      "createdAt": "2026-05-20T16:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u6",
+          "type": "funny"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p11",
+      "authorId": "u9",
+      "content": "Content strategy framework that actually works for B2B SaaS 👇",
+      "visibility": "anyone",
+      "createdAt": "2026-05-20T08:19:26.222Z",
+      "reactions": [],
+      "commentIds": []
+    },
+    {
+      "id": "p12",
+      "authorId": "u10",
+      "content": "Kubernetes 1.30 is out. Here are the top 5 features for platform teams.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-19T20:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u2",
+          "type": "insightful"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p13",
+      "authorId": "u3",
+      "content": "Accessibility isn't optional. Here's our checklist for every design review.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-19T12:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "support"
+        },
+        {
+          "userId": "u5",
+          "type": "like"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p14",
+      "authorId": "u11",
+      "content": "Q1 earnings analysis: fintech sector showing strong growth in payments.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-18T20:19:26.222Z",
+      "reactions": [],
+      "commentIds": []
+    },
+    {
+      "id": "p15",
+      "authorId": "u4",
+      "content": "Leadership lesson: hire for potential, not just pedigree.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-18T16:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "insightful"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p16",
+      "authorId": "u12",
+      "content": "Closed our biggest enterprise deal of the year! Team effort all the way.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-18T06:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u5",
+          "type": "celebrate"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p17",
+      "authorId": "u13",
+      "content": "New HR policies rolling out next month focused on flexible work arrangements.",
+      "visibility": "connections",
+      "createdAt": "2026-05-17T20:19:26.222Z",
+      "reactions": [],
+      "commentIds": []
+    },
+    {
+      "id": "p18",
+      "authorId": "u14",
+      "content": "Zero-trust security: a practical guide for mid-size companies.",
+      "articleUrl": "https://example.com/zero-trust",
+      "articleTitle": "Zero Trust Security Guide",
+      "visibility": "anyone",
+      "createdAt": "2026-05-17T10:19:26.222Z",
+      "reactions": [],
+      "commentIds": []
+    },
+    {
+      "id": "p19",
+      "authorId": "u15",
+      "content": "PMP certification complete! Ready to take on larger programs.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-17T00:19:26.222Z",
+      "reactions": [
+        {
+          "userId": "u1",
+          "type": "celebrate"
+        },
+        {
+          "userId": "u4",
+          "type": "celebrate"
+        }
+      ],
+      "commentIds": []
+    },
+    {
+      "id": "p20",
+      "authorId": "u1",
+      "content": "Reposting great insights from our engineering team.",
+      "visibility": "anyone",
+      "createdAt": "2026-05-16T14:19:26.222Z",
+      "reactions": [],
+      "commentIds": [],
+      "repostOfId": "p1"
+    },
+    {
+      "id": "p-ad1",
+      "authorId": "u12",
+      "content": "Transform your sales pipeline with SalesPro CRM. Start your free trial today!",
+      "visibility": "anyone",
+      "createdAt": "2026-05-22T17:19:26.222Z",
+      "reactions": [],
+      "commentIds": [],
+      "isSponsored": true
+    }
+  ],
+  "comments": [
+    {
+      "id": "cm1",
+      "postId": "p1",
+      "authorId": "u1",
+      "content": "Congrats team! Would love to hear more about the migration process.",
+      "createdAt": "2026-05-22T19:19:26.222Z"
+    },
+    {
+      "id": "cm2",
+      "postId": "p1",
+      "authorId": "u6",
+      "content": "Impressive work! Any blog post planned?",
+      "createdAt": "2026-05-22T18:49:26.222Z"
+    },
+    {
+      "id": "cm3",
+      "postId": "p2",
+      "authorId": "u4",
+      "content": "Add: Default to async communication for distributed teams.",
+      "createdAt": "2026-05-22T16:19:26.222Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "j1",
+      "title": "Senior Frontend Engineer",
+      "companyId": "c1",
+      "location": "San Francisco, CA",
+      "remote": true,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Join TechCorp's product engineering team to build scalable React applications used by millions.",
+      "qualifications": [
+        "5+ years React experience",
+        "TypeScript proficiency",
+        "Experience with design systems"
+      ],
+      "salary": "$160,000 - $200,000",
+      "applicants": 142,
+      "postedAt": "2026-05-20T20:19:26.219Z",
+      "promoted": true
+    },
+    {
+      "id": "j2",
+      "title": "Product Manager",
+      "companyId": "c1",
+      "location": "San Francisco, CA",
+      "remote": false,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Lead product initiatives for our enterprise platform.",
+      "qualifications": [
+        "3+ years PM experience",
+        "B2B SaaS background"
+      ],
+      "applicants": 89,
+      "postedAt": "2026-05-17T20:19:26.220Z"
+    },
+    {
+      "id": "j3",
+      "title": "UX Designer",
+      "companyId": "c4",
+      "location": "New York, NY",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Design beautiful, accessible interfaces for global clients.",
+      "qualifications": [
+        "Portfolio required",
+        "Figma expert",
+        "Design systems experience"
+      ],
+      "applicants": 56,
+      "postedAt": "2026-05-19T20:19:26.220Z"
+    },
+    {
+      "id": "j4",
+      "title": "Engineering Manager",
+      "companyId": "c2",
+      "location": "Austin, TX",
+      "remote": false,
+      "experienceLevel": "Director",
+      "employmentType": "Full-time",
+      "description": "Lead a team of 12 engineers building AI-powered products.",
+      "qualifications": [
+        "Management experience",
+        "Technical background",
+        "AI/ML familiarity"
+      ],
+      "salary": "$180,000 - $220,000",
+      "applicants": 34,
+      "postedAt": "2026-05-15T20:19:26.220Z",
+      "promoted": true
+    },
+    {
+      "id": "j5",
+      "title": "DevOps Engineer",
+      "companyId": "c6",
+      "location": "Seattle, WA",
+      "remote": true,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Build and maintain cloud infrastructure at scale.",
+      "qualifications": [
+        "Kubernetes",
+        "AWS/GCP",
+        "Terraform"
+      ],
+      "applicants": 78,
+      "postedAt": "2026-05-18T20:19:26.220Z"
+    },
+    {
+      "id": "j6",
+      "title": "Data Scientist",
+      "companyId": "c1",
+      "location": "Remote",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Apply ML to solve complex business problems.",
+      "qualifications": [
+        "Python",
+        "SQL",
+        "ML frameworks"
+      ],
+      "applicants": 112,
+      "postedAt": "2026-05-16T20:19:26.220Z"
+    },
+    {
+      "id": "j7",
+      "title": "Marketing Manager",
+      "companyId": "c5",
+      "location": "Chicago, IL",
+      "remote": false,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Drive B2B marketing campaigns and brand growth.",
+      "qualifications": [
+        "B2B marketing",
+        "Analytics",
+        "Content strategy"
+      ],
+      "applicants": 45,
+      "postedAt": "2026-05-14T20:19:26.220Z"
+    },
+    {
+      "id": "j8",
+      "title": "Full Stack Developer",
+      "companyId": "c3",
+      "location": "Boston, MA",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Early-stage startup building collaboration tools.",
+      "qualifications": [
+        "React",
+        "Node.js",
+        "Startup experience"
+      ],
+      "applicants": 203,
+      "postedAt": "2026-05-21T20:19:26.220Z",
+      "promoted": true
+    },
+    {
+      "id": "j9",
+      "title": "Financial Analyst",
+      "companyId": "c7",
+      "location": "New York, NY",
+      "remote": false,
+      "experienceLevel": "Entry",
+      "employmentType": "Full-time",
+      "description": "Support financial planning and analysis team.",
+      "qualifications": [
+        "Excel",
+        "Financial modeling",
+        "BA in Finance"
+      ],
+      "applicants": 67,
+      "postedAt": "2026-05-12T20:19:26.220Z"
+    },
+    {
+      "id": "j10",
+      "title": "Cybersecurity Analyst",
+      "companyId": "c8",
+      "location": "Washington, DC",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Protect healthcare data and systems.",
+      "qualifications": [
+        "Security certifications",
+        "SIEM tools",
+        "Incident response"
+      ],
+      "applicants": 29,
+      "postedAt": "2026-05-10T20:19:26.220Z"
+    },
+    {
+      "id": "j11",
+      "title": "Sales Executive",
+      "companyId": "c10",
+      "location": "Los Angeles, CA",
+      "remote": false,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Drive enterprise sales for retail technology solutions.",
+      "qualifications": [
+        "Enterprise sales",
+        "Retail industry",
+        "CRM experience"
+      ],
+      "applicants": 38,
+      "postedAt": "2026-05-13T20:19:26.220Z"
+    },
+    {
+      "id": "j12",
+      "title": "Instructional Designer",
+      "companyId": "c9",
+      "location": "Denver, CO",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Contract",
+      "description": "Create engaging online learning content.",
+      "qualifications": [
+        "Instructional design",
+        "LMS platforms",
+        "Video production"
+      ],
+      "applicants": 22,
+      "postedAt": "2026-05-08T20:19:26.220Z"
+    },
+    {
+      "id": "j13",
+      "title": "HR Business Partner",
+      "companyId": "c1",
+      "location": "San Jose, CA",
+      "remote": false,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Partner with business leaders on people strategy.",
+      "qualifications": [
+        "HRBP experience",
+        "SHRM certification preferred"
+      ],
+      "applicants": 41,
+      "postedAt": "2026-05-11T20:19:26.220Z"
+    },
+    {
+      "id": "j14",
+      "title": "Backend Engineer (Go)",
+      "companyId": "c6",
+      "location": "Seattle, WA",
+      "remote": true,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Build high-performance backend services.",
+      "qualifications": [
+        "Go",
+        "Distributed systems",
+        "PostgreSQL"
+      ],
+      "salary": "$150,000 - $190,000",
+      "applicants": 95,
+      "postedAt": "2026-05-07T20:19:26.220Z"
+    },
+    {
+      "id": "j15",
+      "title": "Content Strategist",
+      "companyId": "c5",
+      "location": "Remote",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Develop content strategy for B2B clients.",
+      "qualifications": [
+        "Content marketing",
+        "SEO",
+        "B2B experience"
+      ],
+      "applicants": 51,
+      "postedAt": "2026-05-06T20:19:26.220Z"
+    },
+    {
+      "id": "j16",
+      "title": "iOS Developer",
+      "companyId": "c3",
+      "location": "Boston, MA",
+      "remote": true,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Build native iOS apps for our collaboration platform.",
+      "qualifications": [
+        "Swift",
+        "SwiftUI",
+        "5+ years iOS"
+      ],
+      "applicants": 63,
+      "postedAt": "2026-05-04T20:19:26.220Z"
+    },
+    {
+      "id": "j17",
+      "title": "Recruiter",
+      "companyId": "c1",
+      "location": "San Francisco, CA",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Source and hire top tech talent.",
+      "qualifications": [
+        "Tech recruiting",
+        "ATS tools",
+        "Sourcing skills"
+      ],
+      "applicants": 28,
+      "postedAt": "2026-05-02T20:19:26.220Z"
+    },
+    {
+      "id": "j18",
+      "title": "Project Manager",
+      "companyId": "c8",
+      "location": "Philadelphia, PA",
+      "remote": false,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Manage healthcare IT implementation projects.",
+      "qualifications": [
+        "PMP preferred",
+        "Healthcare IT",
+        "Agile"
+      ],
+      "applicants": 44,
+      "postedAt": "2026-04-30T20:19:26.220Z"
+    },
+    {
+      "id": "j19",
+      "title": "Machine Learning Engineer",
+      "companyId": "c2",
+      "location": "Austin, TX",
+      "remote": true,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Deploy ML models to production at scale.",
+      "qualifications": [
+        "PyTorch/TensorFlow",
+        "MLOps",
+        "Python"
+      ],
+      "salary": "$170,000 - $210,000",
+      "applicants": 87,
+      "postedAt": "2026-04-27T20:19:26.220Z",
+      "promoted": true
+    },
+    {
+      "id": "j20",
+      "title": "Customer Success Manager",
+      "companyId": "c1",
+      "location": "Remote",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Ensure customer satisfaction and retention.",
+      "qualifications": [
+        "SaaS experience",
+        "Account management",
+        "Communication skills"
+      ],
+      "applicants": 72,
+      "postedAt": "2026-04-24T20:19:26.220Z"
+    },
+    {
+      "id": "j21",
+      "title": "Graphic Designer",
+      "companyId": "c4",
+      "location": "New York, NY",
+      "remote": true,
+      "experienceLevel": "Entry",
+      "employmentType": "Contract",
+      "description": "Create visual assets for digital campaigns.",
+      "qualifications": [
+        "Adobe Creative Suite",
+        "Brand design"
+      ],
+      "applicants": 156,
+      "postedAt": "2026-04-22T20:19:26.220Z"
+    },
+    {
+      "id": "j22",
+      "title": "Solutions Architect",
+      "companyId": "c6",
+      "location": "Seattle, WA",
+      "remote": true,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Design cloud solutions for enterprise clients.",
+      "qualifications": [
+        "AWS/Azure",
+        "Architecture",
+        "Client-facing"
+      ],
+      "applicants": 33,
+      "postedAt": "2026-04-20T20:19:26.220Z"
+    },
+    {
+      "id": "j23",
+      "title": "Legal Counsel",
+      "companyId": "c7",
+      "location": "New York, NY",
+      "remote": false,
+      "experienceLevel": "Senior",
+      "employmentType": "Full-time",
+      "description": "Support fintech regulatory compliance.",
+      "qualifications": [
+        "JD required",
+        "FinTech experience",
+        "Regulatory knowledge"
+      ],
+      "applicants": 19,
+      "postedAt": "2026-04-17T20:19:26.220Z"
+    },
+    {
+      "id": "j24",
+      "title": "QA Engineer",
+      "companyId": "c3",
+      "location": "Boston, MA",
+      "remote": true,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Ensure quality across our product suite.",
+      "qualifications": [
+        "Test automation",
+        "Cypress/Playwright",
+        "API testing"
+      ],
+      "applicants": 48,
+      "postedAt": "2026-04-14T20:19:26.220Z"
+    },
+    {
+      "id": "j25",
+      "title": "Business Analyst",
+      "companyId": "c10",
+      "location": "Los Angeles, CA",
+      "remote": false,
+      "experienceLevel": "Mid-Senior",
+      "employmentType": "Full-time",
+      "description": "Analyze retail operations and recommend improvements.",
+      "qualifications": [
+        "SQL",
+        "Tableau",
+        "Retail analytics"
+      ],
+      "applicants": 61,
+      "postedAt": "2026-04-12T20:19:26.220Z"
+    }
+  ],
+  "groups": [
+    {
+      "id": "g1",
+      "name": "Product Management Professionals",
+      "description": "A community for PMs to share insights, frameworks, and career advice.",
+      "memberIds": [
+        "u1",
+        "u4",
+        "u5",
+        "u15"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group1/200/200",
+      "privacy": "public"
+    },
+    {
+      "id": "g2",
+      "name": "React Developers Network",
+      "description": "Discuss React, hooks, performance, and the latest ecosystem news.",
+      "memberIds": [
+        "u2",
+        "u6",
+        "u10"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group2/200/200",
+      "privacy": "public"
+    },
+    {
+      "id": "g3",
+      "name": "UX Design Community",
+      "description": "Share portfolios, critiques, and design resources.",
+      "memberIds": [
+        "u3",
+        "u1"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group3/200/200",
+      "privacy": "public"
+    },
+    {
+      "id": "g4",
+      "name": "Startup Founders Hub",
+      "description": "Founders supporting founders — fundraising, hiring, growth.",
+      "memberIds": [
+        "u8",
+        "u4"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group4/200/200",
+      "privacy": "private"
+    },
+    {
+      "id": "g5",
+      "name": "Women in Tech Leadership",
+      "description": "Empowering women leaders in technology.",
+      "memberIds": [
+        "u1",
+        "u3",
+        "u13"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group5/200/200",
+      "privacy": "public"
+    },
+    {
+      "id": "g6",
+      "name": "Remote Work Best Practices",
+      "description": "Tips and tools for thriving in remote and hybrid work.",
+      "memberIds": [
+        "u2",
+        "u10",
+        "u9"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group6/200/200",
+      "privacy": "public"
+    },
+    {
+      "id": "g7",
+      "name": "AI & Machine Learning",
+      "description": "Latest in AI research, applications, and career paths.",
+      "memberIds": [
+        "u6",
+        "u4"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group7/200/200",
+      "privacy": "public"
+    },
+    {
+      "id": "g8",
+      "name": "Sales & Business Development",
+      "description": "Strategies for enterprise sales and partnerships.",
+      "memberIds": [
+        "u12",
+        "u5"
+      ],
+      "imageUrl": "https://picsum.photos/seed/group8/200/200",
+      "privacy": "public"
+    }
+  ],
+  "courses": [
+    {
+      "id": "co1",
+      "title": "React.js Essential Training",
+      "description": "Master React fundamentals including hooks, context, and performance.",
+      "instructor": "John Smith",
+      "thumbnailUrl": "https://picsum.photos/seed/course1/400/225",
+      "durationHours": 8,
+      "category": "Development",
+      "lessons": [
+        {
+          "id": "l1",
+          "title": "Introduction to React",
+          "durationMinutes": 15
+        },
+        {
+          "id": "l2",
+          "title": "Components and Props",
+          "durationMinutes": 22
+        },
+        {
+          "id": "l3",
+          "title": "State and Hooks",
+          "durationMinutes": 35
+        },
+        {
+          "id": "l4",
+          "title": "Context API",
+          "durationMinutes": 28
+        },
+        {
+          "id": "l5",
+          "title": "Performance Optimization",
+          "durationMinutes": 40
+        }
+      ]
+    },
+    {
+      "id": "co2",
+      "title": "Product Management Foundations",
+      "description": "Learn the core skills every product manager needs.",
+      "instructor": "Jane Doe",
+      "thumbnailUrl": "https://picsum.photos/seed/course2/400/225",
+      "durationHours": 6,
+      "category": "Business",
+      "lessons": [
+        {
+          "id": "l6",
+          "title": "What is Product Management?",
+          "durationMinutes": 12
+        },
+        {
+          "id": "l7",
+          "title": "User Research Basics",
+          "durationMinutes": 25
+        },
+        {
+          "id": "l8",
+          "title": "Roadmapping",
+          "durationMinutes": 30
+        }
+      ]
+    },
+    {
+      "id": "co3",
+      "title": "UX Design Principles",
+      "description": "Create user-centered designs with proven UX methodologies.",
+      "instructor": "Sarah Chen",
+      "thumbnailUrl": "https://picsum.photos/seed/course3/400/225",
+      "durationHours": 5,
+      "category": "Design",
+      "lessons": [
+        {
+          "id": "l9",
+          "title": "Design Thinking",
+          "durationMinutes": 20
+        },
+        {
+          "id": "l10",
+          "title": "Wireframing",
+          "durationMinutes": 25
+        },
+        {
+          "id": "l11",
+          "title": "Usability Testing",
+          "durationMinutes": 30
+        }
+      ]
+    },
+    {
+      "id": "co4",
+      "title": "Leadership for Engineers",
+      "description": "Transition from IC to engineering leadership.",
+      "instructor": "Mike Johnson",
+      "thumbnailUrl": "https://picsum.photos/seed/course4/400/225",
+      "durationHours": 4,
+      "category": "Leadership",
+      "lessons": [
+        {
+          "id": "l12",
+          "title": "The IC to Manager Path",
+          "durationMinutes": 18
+        },
+        {
+          "id": "l13",
+          "title": "Giving Feedback",
+          "durationMinutes": 22
+        }
+      ]
+    },
+    {
+      "id": "co5",
+      "title": "TypeScript Deep Dive",
+      "description": "Advanced TypeScript patterns for large codebases.",
+      "instructor": "John Smith",
+      "thumbnailUrl": "https://picsum.photos/seed/course5/400/225",
+      "durationHours": 7,
+      "category": "Development",
+      "lessons": [
+        {
+          "id": "l14",
+          "title": "Generics",
+          "durationMinutes": 35
+        },
+        {
+          "id": "l15",
+          "title": "Utility Types",
+          "durationMinutes": 28
+        },
+        {
+          "id": "l16",
+          "title": "Type Guards",
+          "durationMinutes": 20
+        }
+      ]
+    },
+    {
+      "id": "co6",
+      "title": "Digital Marketing Strategy",
+      "description": "Build and execute effective B2B marketing campaigns.",
+      "instructor": "Emma Wilson",
+      "thumbnailUrl": "https://picsum.photos/seed/course6/400/225",
+      "durationHours": 5,
+      "category": "Marketing",
+      "lessons": [
+        {
+          "id": "l17",
+          "title": "Marketing Funnels",
+          "durationMinutes": 25
+        },
+        {
+          "id": "l18",
+          "title": "SEO Fundamentals",
+          "durationMinutes": 30
+        }
+      ]
+    },
+    {
+      "id": "co7",
+      "title": "Kubernetes for Developers",
+      "description": "Deploy and manage applications on Kubernetes.",
+      "instructor": "Tom Harris",
+      "thumbnailUrl": "https://picsum.photos/seed/course7/400/225",
+      "durationHours": 9,
+      "category": "DevOps",
+      "lessons": [
+        {
+          "id": "l19",
+          "title": "K8s Architecture",
+          "durationMinutes": 30
+        },
+        {
+          "id": "l20",
+          "title": "Deployments",
+          "durationMinutes": 35
+        },
+        {
+          "id": "l21",
+          "title": "Services & Ingress",
+          "durationMinutes": 28
+        }
+      ]
+    },
+    {
+      "id": "co8",
+      "title": "Data Science with Python",
+      "description": "From data cleaning to machine learning models.",
+      "instructor": "Alex Brown",
+      "thumbnailUrl": "https://picsum.photos/seed/course8/400/225",
+      "durationHours": 10,
+      "category": "Data Science",
+      "lessons": [
+        {
+          "id": "l22",
+          "title": "Pandas Basics",
+          "durationMinutes": 40
+        },
+        {
+          "id": "l23",
+          "title": "Visualization",
+          "durationMinutes": 35
+        },
+        {
+          "id": "l24",
+          "title": "ML Intro",
+          "durationMinutes": 45
+        }
+      ]
+    },
+    {
+      "id": "co9",
+      "title": "Negotiation Skills",
+      "description": "Negotiate salaries, contracts, and business deals effectively.",
+      "instructor": "Chris Martin",
+      "thumbnailUrl": "https://picsum.photos/seed/course9/400/225",
+      "durationHours": 3,
+      "category": "Soft Skills",
+      "lessons": [
+        {
+          "id": "l25",
+          "title": "Negotiation Framework",
+          "durationMinutes": 20
+        },
+        {
+          "id": "l26",
+          "title": "Practice Scenarios",
+          "durationMinutes": 25
+        }
+      ]
+    },
+    {
+      "id": "co10",
+      "title": "Cybersecurity Essentials",
+      "description": "Protect yourself and your organization from cyber threats.",
+      "instructor": "James Taylor",
+      "thumbnailUrl": "https://picsum.photos/seed/course10/400/225",
+      "durationHours": 6,
+      "category": "Security",
+      "lessons": [
+        {
+          "id": "l27",
+          "title": "Threat Landscape",
+          "durationMinutes": 22
+        },
+        {
+          "id": "l28",
+          "title": "Best Practices",
+          "durationMinutes": 30
+        }
+      ]
+    },
+    {
+      "id": "co11",
+      "title": "Excel for Business Analytics",
+      "description": "Advanced Excel techniques for data analysis.",
+      "instructor": "Nina Patel",
+      "thumbnailUrl": "https://picsum.photos/seed/course11/400/225",
+      "durationHours": 4,
+      "category": "Finance",
+      "lessons": [
+        {
+          "id": "l29",
+          "title": "Pivot Tables",
+          "durationMinutes": 25
+        },
+        {
+          "id": "l30",
+          "title": "Dashboards",
+          "durationMinutes": 30
+        }
+      ]
+    },
+    {
+      "id": "co12",
+      "title": "Public Speaking Mastery",
+      "description": "Present with confidence in any professional setting.",
+      "instructor": "Rachel Green",
+      "thumbnailUrl": "https://picsum.photos/seed/course12/400/225",
+      "durationHours": 3,
+      "category": "Communication",
+      "lessons": [
+        {
+          "id": "l31",
+          "title": "Overcoming Fear",
+          "durationMinutes": 15
+        },
+        {
+          "id": "l32",
+          "title": "Structuring Talks",
+          "durationMinutes": 20
+        }
+      ]
+    }
+  ],
+  "invitations": [
+    {
+      "id": "inv1",
+      "fromUserId": "u7",
+      "toUserId": "u1",
+      "message": "Hi Jane, I'd love to connect!",
+      "createdAt": "2026-05-22T08:19:26.221Z"
+    },
+    {
+      "id": "inv2",
+      "fromUserId": "u9",
+      "toUserId": "u1",
+      "createdAt": "2026-05-21T20:19:26.221Z"
+    },
+    {
+      "id": "inv3",
+      "fromUserId": "u10",
+      "toUserId": "u1",
+      "message": "Fellow PM enthusiast here!",
+      "createdAt": "2026-05-21T08:19:26.221Z"
+    },
+    {
+      "id": "inv4",
+      "fromUserId": "u1",
+      "toUserId": "u8",
+      "createdAt": "2026-05-20T20:19:26.221Z"
+    }
+  ],
+  "threads": [
+    {
+      "id": "t1",
+      "participantIds": [
+        "u1",
+        "u2"
+      ],
+      "lastMessageAt": "2026-05-22T19:19:26.221Z",
+      "unreadBy": {
+        "u1": 0,
+        "u2": 0
+      }
+    },
+    {
+      "id": "t2",
+      "participantIds": [
+        "u1",
+        "u3"
+      ],
+      "lastMessageAt": "2026-05-22T15:19:26.221Z",
+      "unreadBy": {
+        "u1": 1,
+        "u3": 0
+      }
+    },
+    {
+      "id": "t3",
+      "participantIds": [
+        "u1",
+        "u7"
+      ],
+      "lastMessageAt": "2026-05-22T10:19:26.221Z",
+      "unreadBy": {
+        "u1": 2,
+        "u7": 0
+      }
+    },
+    {
+      "id": "t4",
+      "participantIds": [
+        "u1",
+        "u4"
+      ],
+      "lastMessageAt": "2026-05-20T20:19:26.221Z",
+      "unreadBy": {
+        "u1": 0,
+        "u4": 0
+      }
+    },
+    {
+      "id": "t5",
+      "participantIds": [
+        "u2",
+        "u6"
+      ],
+      "lastMessageAt": "2026-05-19T20:19:26.221Z",
+      "unreadBy": {
+        "u2": 0,
+        "u6": 1
+      }
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "threadId": "t1",
+      "senderId": "u2",
+      "content": "Hey Jane, great post about product lessons!",
+      "createdAt": "2026-05-22T17:19:26.221Z",
+      "read": true
+    },
+    {
+      "id": "m2",
+      "threadId": "t1",
+      "senderId": "u1",
+      "content": "Thanks John! Would love to sync on the migration too.",
+      "createdAt": "2026-05-22T18:19:26.221Z",
+      "read": true
+    },
+    {
+      "id": "m3",
+      "threadId": "t1",
+      "senderId": "u2",
+      "content": "Absolutely — how about Thursday?",
+      "createdAt": "2026-05-22T19:19:26.221Z",
+      "read": true
+    },
+    {
+      "id": "m4",
+      "threadId": "t2",
+      "senderId": "u3",
+      "content": "Loved your feedback on the design system!",
+      "createdAt": "2026-05-22T15:19:26.221Z",
+      "read": false
+    },
+    {
+      "id": "m5",
+      "threadId": "t3",
+      "senderId": "u7",
+      "content": "I have some great PM roles that might interest you.",
+      "createdAt": "2026-05-22T08:19:26.221Z",
+      "read": false
+    },
+    {
+      "id": "m6",
+      "threadId": "t3",
+      "senderId": "u7",
+      "content": "Let me know if you'd like an intro!",
+      "createdAt": "2026-05-22T10:19:26.222Z",
+      "read": false
+    },
+    {
+      "id": "m7",
+      "threadId": "t4",
+      "senderId": "u4",
+      "content": "Thanks for connecting!",
+      "createdAt": "2026-05-20T20:19:26.222Z",
+      "read": true
+    }
+  ],
+  "notifications": [
+    {
+      "id": "n1",
+      "userId": "u1",
+      "type": "post_reaction",
+      "title": "John Smith reacted to your post",
+      "body": "Reacted with Insightful",
+      "link": "/",
+      "read": false,
+      "createdAt": "2026-05-22T19:19:26.222Z",
+      "actorId": "u2"
+    },
+    {
+      "id": "n2",
+      "userId": "u1",
+      "type": "connection_accepted",
+      "title": "Mike Johnson accepted your invitation",
+      "body": "You are now connected",
+      "link": "/mynetwork",
+      "read": false,
+      "createdAt": "2026-05-22T17:19:26.222Z",
+      "actorId": "u4"
+    },
+    {
+      "id": "n3",
+      "userId": "u1",
+      "type": "profile_view",
+      "title": "Lisa Park viewed your profile",
+      "body": "Recruiter at Tech Talent",
+      "link": "/in/lisa-park",
+      "read": false,
+      "createdAt": "2026-05-22T14:19:26.222Z",
+      "actorId": "u7"
+    },
+    {
+      "id": "n4",
+      "userId": "u1",
+      "type": "job_alert",
+      "title": "New jobs matching \"Product Manager\"",
+      "body": "3 new jobs in San Francisco",
+      "link": "/jobs",
+      "read": true,
+      "createdAt": "2026-05-22T08:19:26.222Z"
+    },
+    {
+      "id": "n5",
+      "userId": "u1",
+      "type": "group_invite",
+      "title": "Sarah Chen invited you to UX Design Community",
+      "body": "Join the group to see posts",
+      "link": "/groups/g3",
+      "read": true,
+      "createdAt": "2026-05-21T20:19:26.222Z",
+      "actorId": "u3"
+    },
+    {
+      "id": "n6",
+      "userId": "u1",
+      "type": "message",
+      "title": "New message from Lisa Park",
+      "body": "I have some great PM roles...",
+      "link": "/messaging/t3",
+      "read": false,
+      "createdAt": "2026-05-22T10:19:26.222Z",
+      "actorId": "u7"
+    },
+    {
+      "id": "n7",
+      "userId": "u1",
+      "type": "post_reaction",
+      "title": "Emma Wilson reacted to your post",
+      "body": "Reacted with Like",
+      "read": true,
+      "createdAt": "2026-05-20T20:19:26.222Z",
+      "actorId": "u5"
+    }
+  ],
+  "events": [
+    {
+      "id": "ev1",
+      "title": "ProductCon 2026",
+      "date": "2026-06-05T20:19:26.222Z",
+      "location": "San Francisco, CA",
+      "imageUrl": "https://picsum.photos/seed/event1/400/200",
+      "attendeeIds": [
+        "u1",
+        "u4"
+      ]
+    },
+    {
+      "id": "ev2",
+      "title": "React Summit",
+      "date": "2026-06-21T20:19:26.222Z",
+      "location": "Online",
+      "imageUrl": "https://picsum.photos/seed/event2/400/200",
+      "attendeeIds": [
+        "u2"
+      ]
+    },
+    {
+      "id": "ev3",
+      "title": "Women in Tech Networking",
+      "date": "2026-05-29T20:19:26.222Z",
+      "location": "New York, NY",
+      "imageUrl": "https://picsum.photos/seed/event3/400/200",
+      "attendeeIds": [
+        "u3",
+        "u1"
+      ]
+    },
+    {
+      "id": "ev4",
+      "title": "Startup Pitch Night",
+      "date": "2026-06-12T20:19:26.222Z",
+      "location": "Boston, MA",
+      "imageUrl": "https://picsum.photos/seed/event4/400/200",
+      "attendeeIds": [
+        "u8"
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "userId": "u1",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u2",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u3",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u4",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u5",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u6",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u7",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u8",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u9",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u10",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u11",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u12",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u13",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u14",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    },
+    {
+      "userId": "u15",
+      "emailNotifications": true,
+      "pushNotifications": true,
+      "profileVisibility": "public",
+      "activityVisibility": true,
+      "messagingFrom": "connections",
+      "language": "en",
+      "theme": "light"
+    }
+  ],
+  "jobApplications": [],
+  "savedJobIds": {},
+  "jobAlerts": [],
+  "courseProgress": [],
+  "sessions": {}
+}

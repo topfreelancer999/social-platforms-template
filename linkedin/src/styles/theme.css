@@ -1,0 +1,11 @@
+@theme {
+  --color-linkedin-primary: #0a66c2;
+  --color-linkedin-primary-hover: #004182;
+  --color-linkedin-bg: #f3f2ef;
+  --color-linkedin-card: #ffffff;
+  --color-linkedin-border: #e0dfdc;
+  --color-linkedin-text: rgba(0, 0, 0, 0.9);
+  --color-linkedin-muted: rgba(0, 0, 0, 0.6);
+  --color-linkedin-nav-active: #000000;
+  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
