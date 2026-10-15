@@ -1,34 +1,28 @@
 import { useState } from 'react'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { TweetCard } from './TweetCard'
+import { useCreateTweet } from './hooks'
+import type { TimelinePage } from './types'
 
 export function FeedPage() {
   const { user, accessToken } = useAuthStore()
   const [tab, setTab] = useState('for-you')
   const [text, setText] = useState('')
-  const qc = useQueryClient()
   const { data: trending } = useQuery({
     queryKey: ['trending'],
     queryFn: () => api<{ tag: string; tweetCount: number }[]>('/trending', { headers: authHeaders(accessToken) }),
   })
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useInfiniteQuery({
     queryKey: ['feed', tab],
     queryFn: ({ pageParam = 1 }) =>
-      api<{ items: unknown[]; hasMore: boolean }>(`/feed?page=${pageParam}&tab=${tab}`, { headers: authHeaders(accessToken) }),
+      api<TimelinePage>(`/feed?page=${pageParam}&tab=${tab}`, { headers: authHeaders(accessToken) }),
     getNextPageParam: (last, pages) => (last.hasMore ? pages.length + 1 : undefined),
     initialPageParam: 1,
   })
-  const createTweet = useMutation({
-    mutationFn: () =>
-      api('/tweets', { method: 'POST', headers: authHeaders(accessToken), body: JSON.stringify({ content: text }) }),
-    onSuccess: () => {
-      setText('')
-      qc.invalidateQueries({ queryKey: ['feed'] })
-    },
-  })
+  const createTweet = useCreateTweet()
   const tweets = data?.pages.flatMap((p) => p.items) ?? []
   const remaining = 280 - text.length
   return (
@@ -63,7 +57,7 @@ export function FeedPage() {
           <div className="flex justify-between items-center mt-2">
             <span className={`text-xs ${remaining < 20 ? 'text-orange-500' : 'text-x-muted'}`}>{remaining}</span>
             <button
-              onClick={() => text.trim() && createTweet.mutate()}
+              onClick={() => text.trim() && createTweet.mutate({ content: text }, { onSuccess: () => setText('') })}
               disabled={!text.trim() || createTweet.isPending}
               className="bg-x-primary hover:bg-x-primary-hover text-white font-bold rounded-full px-4 py-1.5 text-sm disabled:opacity-50"
             >
@@ -72,8 +66,13 @@ export function FeedPage() {
           </div>
         </div>
       </div>
+      {isLoading && <p className="p-4 text-center text-x-muted text-sm">Loading…</p>}
+      {isError && <p className="p-4 text-center text-red-500 text-sm">Couldn't load posts. Try again later.</p>}
+      {!isLoading && !isError && tweets.length === 0 && (
+        <p className="p-8 text-center text-x-muted text-sm">Nothing to see here yet — follow people to fill your timeline.</p>
+      )}
       {tweets.map((t) => (
-        <TweetCard key={(t as { id: string }).id} tweet={t} />
+        <TweetCard key={t.entryId ?? t.id} tweet={t} />
       ))}
       {hasNextPage && (
         <button onClick={() => fetchNextPage()} className="w-full py-4 text-x-primary font-semibold text-sm">

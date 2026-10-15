@@ -18,6 +18,7 @@ import { FeedbackPage } from '@/features/feedback/FeedbackPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { EventsPage } from '@/features/events/EventsPage'
 import { TweetDetailPage } from '@/features/feed/TweetDetailPage'
+import { QuotesPage } from '@/features/feed/QuotesPage'
 import { HashtagPage } from '@/features/explore/HashtagPage'
 
 function Private({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,7 @@ export function AppRouter() {
         <Route path="settings/:section?" element={<SettingsPage />} />
         <Route path="events" element={<EventsPage />} />
         <Route path="tweet/:id" element={<TweetDetailPage />} />
+        <Route path="tweet/:id/quotes" element={<QuotesPage />} />
         <Route path="hashtag/:tag" element={<HashtagPage />} />
         <Route path="friends" element={<Navigate to="/follows" replace />} />
         <Route path="groups" element={<Navigate to="/communities" replace />} />

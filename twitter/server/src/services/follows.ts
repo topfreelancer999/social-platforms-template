@@ -26,3 +26,12 @@ export async function isBlocked(userId: string, otherId: string) {
   })
   return !!block
 }
+
+/** Ids of users the viewer has blocked or been blocked by. */
+export async function getBlockedIds(userId: string): Promise<Set<string>> {
+  const rows = await prisma.block.findMany({
+    where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+    select: { blockerId: true, blockedId: true },
+  })
+  return new Set(rows.map((r) => (r.blockerId === userId ? r.blockedId : r.blockerId)))
+}

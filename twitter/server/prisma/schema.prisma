@@ -16,6 +16,7 @@ enum NotificationType {
   FOLLOW
   LIKE
   RETWEET
+  QUOTE
   REPLY
   MENTION
   COMMUNITY
@@ -98,6 +99,9 @@ model Tweet {
   imageUrl     String?
   replyToId    String?
   quoteTweetId String?
+  /// True when the post was published as a quote. Survives deletion of the
+  /// original (quoteTweetId is then nulled) so the UI can show "unavailable".
+  isQuote      Boolean  @default(false)
   communityId  String?
   createdAt    DateTime @default(now())
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -110,6 +114,8 @@ model Tweet {
   retweets     Retweet[]
   bookmarks    Bookmark[]
   hashtags     TweetHashtag[]
+
+  @@index([quoteTweetId, createdAt])
 }
 
 model TweetLike {
@@ -123,6 +129,8 @@ model TweetLike {
   @@unique([tweetId, userId])
 }
 
+/// A repost: one per user per post. Shows in followers' timelines and on the
+/// reposter's profile with a "<Name> reposted" header.
 model Retweet {
   id        String   @id @default(cuid())
   tweetId   String
@@ -132,6 +140,7 @@ model Retweet {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([tweetId, userId])
+  @@index([userId, createdAt])
 }
 
 model Bookmark {

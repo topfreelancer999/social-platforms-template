@@ -4,6 +4,7 @@ import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/Button'
 import { TweetCard } from '@/features/feed/TweetCard'
+import type { Tweet } from '@/features/feed/types'
 
 export function GroupDetailPage() {
   const { id } = useParams()
@@ -12,7 +13,7 @@ export function GroupDetailPage() {
   const { data } = useQuery({
     queryKey: ['community', id],
     queryFn: () =>
-      api<{ group: { name: string; description: string }; isMember: boolean; tweets: unknown[] }>(
+      api<{ group: { name: string; description: string }; isMember: boolean; tweets: Tweet[] }>(
         `/communities/${id}`,
         { headers: authHeaders(token) },
       ),
@@ -33,7 +34,7 @@ export function GroupDetailPage() {
         </Button>
       </header>
       {data.tweets.map((t) => (
-        <TweetCard key={(t as { id: string }).id} tweet={t} />
+        <TweetCard key={t.id} tweet={t} />
       ))}
     </div>
   )

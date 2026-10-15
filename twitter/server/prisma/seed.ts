@@ -80,6 +80,7 @@ async function main() {
     'Throwback to last summer.',
   ]
 
+  const seeded = []
   for (let i = 0; i < 24; i++) {
     const author = createdUsers[i % createdUsers.length]
     const tweet = await prisma.tweet.create({
@@ -91,6 +92,7 @@ async function main() {
       },
     })
     await linkHashtags(tweet.id, tweet.content)
+    seeded.push(tweet)
     if (i < 10) {
       await prisma.tweetLike.create({ data: { tweetId: tweet.id, userId: alex.id } })
       if (i % 2 === 0) {
@@ -121,6 +123,56 @@ async function main() {
     },
   })
   await linkHashtags(commTweet.id, commTweet.content)
+
+  // --- Reposts & quote posts -------------------------------------------------
+  const minutesAgo = (m: number) => new Date(Date.now() - m * 60000)
+  const repost = (userId: string, tweetId: string, m: number) =>
+    prisma.retweet.create({ data: { userId, tweetId, createdAt: minutesAgo(m) } })
+  const quote = async (authorId: string, quoteTweetId: string, content: string, m: number) => {
+    const q = await prisma.tweet.create({
+      data: { authorId, content, quoteTweetId, isQuote: true, createdAt: minutesAgo(m) },
+    })
+    await linkHashtags(q.id, q.content)
+    return q
+  }
+  const [lisa, , , , amy] = createdUsers.slice(5)
+
+  // Followed users repost into Alex's home timeline (Mike's post is reposted
+  // twice but only shows once thanks to timeline de-duplication).
+  await repost(sarah.id, seeded[2].id, 20)
+  await repost(david.id, seeded[2].id, 50)
+  await repost(emma.id, seeded[9].id, 70)
+  // Others repost Alex's posts (counts + notifications).
+  await repost(mike.id, seeded[0].id, 35)
+  await repost(david.id, seeded[10].id, 150)
+  await repost(amy.id, seeded[0].id, 160)
+  // Alex's own reposts show on his profile.
+  await repost(alex.id, seeded[1].id, 10)
+  await repost(alex.id, seeded[4].id, 90)
+
+  const sarahQuote = await quote(sarah.id, seeded[10].id, "Already have the snacks ready 🍿 Who's hosting?", 15)
+  await quote(david.id, seeded[1].id, "This is the kind of #buildinpublic energy I love. Can't wait to try it.", 40)
+  await quote(mike.id, seeded[1].id, 'Ship it! 🚀', 100)
+  await quote(lisa.id, seeded[1].id, 'Congrats Sarah — the new flow looks slick.', 130)
+  await quote(alex.id, seeded[5].id, 'Hybrid with intentional in-person weeks, async by default. #tech', 25)
+  await prisma.tweetLike.create({ data: { tweetId: sarahQuote.id, userId: alex.id } })
+  await repost(mike.id, sarahQuote.id, 12)
+
+  // A quote whose original was deleted renders "This post is unavailable".
+  const deletedOriginal = await prisma.tweet.create({
+    data: { authorId: emma.id, content: 'Hot take: pineapple belongs on pizza 🍍', createdAt: minutesAgo(240) },
+  })
+  await quote(mike.id, deletedOriginal.id, 'Respectfully… no.', 55)
+  await prisma.tweet.delete({ where: { id: deletedOriginal.id } })
+
+  await prisma.notification.createMany({
+    data: [
+      { userId: alex.id, actorId: mike.id, type: NotificationType.RETWEET, title: 'Mike Jones reposted your post', body: seeded[0].content, link: `/tweet/${seeded[0].id}`, createdAt: minutesAgo(35) },
+      { userId: alex.id, actorId: sarah.id, type: NotificationType.QUOTE, title: 'Sarah Kim quoted your post', body: sarahQuote.content, link: `/tweet/${sarahQuote.id}`, createdAt: minutesAgo(15) },
+      { userId: alex.id, actorId: david.id, type: NotificationType.RETWEET, title: 'David Lee reposted your post', body: seeded[10].content, link: `/tweet/${seeded[10].id}`, createdAt: minutesAgo(150) },
+      { userId: alex.id, actorId: amy.id, type: NotificationType.RETWEET, title: 'Amy Kim reposted your post', body: seeded[0].content, link: `/tweet/${seeded[0].id}`, createdAt: minutesAgo(160) },
+    ],
+  })
 
   await prisma.community.create({
     data: {

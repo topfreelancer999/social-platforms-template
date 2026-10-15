@@ -1,10 +1,12 @@
 export const API = '/api'
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  // Spread `init` first so the merged headers (incl. Content-Type) are not
+  // replaced when a caller passes auth headers.
   const res = await fetch(`${API}${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { TweetCard } from '@/features/feed/TweetCard'
+import type { Tweet } from '@/features/feed/types'
 
 export function ProfilePage() {
   const { username } = useParams()
@@ -19,7 +20,7 @@ export function ProfilePage() {
         isFollowing: boolean
         followerCount: number
         followingCount: number
-        tweets: unknown[]
+        tweets: Tweet[]
       }>(`/users/${username}`, { headers: authHeaders(accessToken) }),
   })
   const follow = useMutation({
@@ -62,7 +63,7 @@ export function ProfilePage() {
       </div>
       <div className="border-t border-x-border-light dark:border-x-border mt-4">
         {tweets.map((t) => (
-          <TweetCard key={(t as { id: string }).id} tweet={t} />
+          <TweetCard key={t.entryId ?? t.id} tweet={t} />
         ))}
         {tweets.length === 0 && <p className="p-4 text-x-muted text-sm">No posts yet</p>}
       </div>

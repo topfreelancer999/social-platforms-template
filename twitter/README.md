@@ -42,7 +42,9 @@ npm run dev
 ## Features
 
 - **Auth** — Register, login, JWT + refresh
-- **Home** — For You / Following feeds, compose tweets (280 chars), likes, retweets
+- **Home** — For You / Following feeds, compose tweets (280 chars), likes
+- **Repost & quote posts** — The repost icon on every post opens a menu with **Repost / Undo repost** and **Quote**. Reposts are one per user per post, update the count optimistically and turn the icon green. Reposts show in followers' timelines and on the reposter's profile under a "<Name> reposted" header; an original appears only once per timeline. **Quote** opens a composer with a preview of the quoted post. The published quote is its own post (you can like, reply to and repost it) and embeds a card that links to the original, or shows "This post is unavailable" if the original was deleted. The post page shows Reposts / Quotes / Likes counts, and **Quotes** opens `/tweet/:id/quotes`. The original author gets a notification for each repost and quote.
+  - API: `POST|DELETE /api/tweets/:id/repost`, `POST /api/tweets` with `quoteTweetId`, `GET /api/tweets/:id/quotes?page=`. Timeline items carry `repostedBy`, `entryId`, `quoteTweet`, `quoteUnavailable` and `quoteCount`.
 - **Profile** — Banner, bio, follow, tweet timeline
 - **Follows** — Suggestions, following list
 - **Communities** — Create, join, community feed
