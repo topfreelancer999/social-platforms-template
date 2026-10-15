@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum CommunityPrivacy {
+  PUBLIC
+  PRIVATE
+}
+
+enum NotificationType {
+  FOLLOW
+  LIKE
+  RETWEET
+  REPLY
+  MENTION
+  COMMUNITY
+  MESSAGE
+  REVIEW
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  username     String   @unique
+  firstName    String
+  lastName     String
+  bio          String   @default("")
+  location     String   @default("")
+  workplace    String   @default("")
+  avatarUrl    String
+  coverUrl     String
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  settings           UserSettings?
+  tweets             Tweet[]
+  likes              TweetLike[]
+  retweets           Retweet[]
+  bookmarks          Bookmark[]
+  following          Follow[]       @relation("Following")
+  followers          Follow[]       @relation("Followers")
+  blockedUsers       Block[]        @relation("Blocker")
+  blockedBy          Block[]        @relation("Blocked")
+  communityMembers   CommunityMember[]
+  createdCommunities Community[]    @relation("CommunityCreator")
+  notifications      Notification[] @relation("NotificationUser")
+  actorNotifications Notification[] @relation("NotificationActor")
+  messages           Message[]
+  threadParticipants ThreadParticipant[]
+  reviews            Review[]
+  feedbacks          Feedback[]
+  reports            Report[]
+}
+
+model UserSettings {
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  user                User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications  Boolean @default(true)
+  pushNotifications   Boolean @default(true)
+  profileVisibility   String  @default("public")
+  messageRequests     String  @default("everyone")
+  showOnlineStatus    Boolean @default(true)
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+model Tweet {
+  id           String   @id @default(cuid())
+  authorId     String
+  content      String
+  imageUrl     String?
+  replyToId    String?
+  quoteTweetId String?
+  communityId  String?
+  createdAt    DateTime @default(now())
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replyTo      Tweet?   @relation("Replies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      Tweet[]  @relation("Replies")
+  quoteTweet   Tweet?   @relation("Quotes", fields: [quoteTweetId], references: [id], onDelete: SetNull)
+  quotes       Tweet[]  @relation("Quotes")
+  community    Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  likes        TweetLike[]
+  retweets     Retweet[]
+  bookmarks    Bookmark[]
+  hashtags     TweetHashtag[]
+}
+
+model TweetLike {
+  id        String   @id @default(cuid())
+  tweetId   String
+  userId    String
+  createdAt DateTime @default(now())
+  tweet     Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tweetId, userId])
+}
+
+model Retweet {
+  id        String   @id @default(cuid())
+  tweetId   String
+  userId    String
+  createdAt DateTime @default(now())
+  tweet     Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tweetId, userId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  tweetId   String
+  userId    String
+  createdAt DateTime @default(now())
+  tweet     Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tweetId, userId])
+}
+
+model Hashtag {
+  id     String         @id @default(cuid())
+  tag    String         @unique
+  tweets TweetHashtag[]
+}
+
+model TweetHashtag {
+  tweetId   String
+  hashtagId String
+  tweet     Tweet   @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  hashtag   Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([tweetId, hashtagId])
+}
+
+model Community {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String
+  privacy     CommunityPrivacy @default(PUBLIC)
+  creatorId   String
+  createdAt   DateTime         @default(now())
+  creator     User             @relation("CommunityCreator", fields: [creatorId], references: [id])
+  members     CommunityMember[]
+  tweets      Tweet[]
+}
+
+model CommunityMember {
+  id          String    @id @default(cuid())
+  communityId String
+  userId      String
+  joinedAt    DateTime  @default(now())
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    String
+  description String
+  imageUrl    String
+  coverUrl    String
+  createdAt   DateTime @default(now())
+  reviews     Review[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  pageId    String
+  userId    String
+  rating    Int
+  content   String
+  createdAt DateTime @default(now())
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Thread {
+  id           String              @id @default(cuid())
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  participants ThreadParticipant[]
+  messages     Message[]
+}
+
+model ThreadParticipant {
+  id       String @id @default(cuid())
+  threadId String
+  userId   String
+  unread   Int    @default(0)
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  threadId  String
+  senderId  String
+  content   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  actorId   String?
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  message   String
+  rating    Int?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  createdAt  DateTime @default(now())
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime
+  location    String
+  imageUrl    String
+  attendeeIds Json     @default("[]")
+}

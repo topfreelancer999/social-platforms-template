@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-wa-teal: #00a884;
+  --color-wa-teal-dark: #008069;
+  --color-wa-header: #202c33;
+  --color-wa-panel: #111b21;
+  --color-wa-chat: #0b141a;
+  --color-wa-incoming: #202c33;
+  --color-wa-outgoing: #005c4b;
+  --color-wa-border: #2a3942;
+  --color-wa-text: #e9edef;
+  --color-wa-muted: #8696a0;
+  --color-fb-primary: #00a884;
+  --color-fb-primary-hover: #008069;
+  --color-fb-bg: #111b21;
+  --color-fb-card: #202c33;
+  --color-fb-border: #2a3942;
+  --color-fb-text: #e9edef;
+  --color-fb-muted: #8696a0;
+}
+
+body {
+  margin: 0;
+  background: var(--color-wa-panel);
+  color: var(--color-wa-text);
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+}

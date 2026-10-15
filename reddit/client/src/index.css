@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-rd-orange: #ff4500;
+  --color-rd-orange-hover: #e03d00;
+  --color-rd-blue: #0079d3;
+  --color-rd-bg: #dae0e6;
+  --color-rd-card: #ffffff;
+  --color-rd-border: #ccc;
+  --color-rd-text: #1a1a1b;
+  --color-rd-muted: #787c7e;
+  --color-fb-primary: #ff4500;
+  --color-fb-primary-hover: #e03d00;
+  --color-fb-bg: #dae0e6;
+  --color-fb-card: #ffffff;
+  --color-fb-border: #ccc;
+  --color-fb-text: #1a1a1b;
+  --color-fb-muted: #787c7e;
+}
+
+body {
+  margin: 0;
+  background: var(--color-rd-bg);
+  color: var(--color-rd-text);
+  font-family: IBM Plex Sans, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}

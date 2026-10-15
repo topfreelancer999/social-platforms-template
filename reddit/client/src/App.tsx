@@ -1,0 +1,15 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter } from 'react-router-dom'
+import { AppRouter } from './app/router'
+
+const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } })
+
+export default function App() {
+  return (
+    <QueryClientProvider client={qc}>
+      <BrowserRouter>
+        <AppRouter />
+      </BrowserRouter>
+    </QueryClientProvider>
+  )
+}

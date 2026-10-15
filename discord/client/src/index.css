@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-dc-blurple: #5865f2;
+  --color-dc-blurple-hover: #4752c4;
+  --color-dc-green: #23a559;
+  --color-dc-bg: #313338;
+  --color-dc-sidebar: #2b2d31;
+  --color-dc-rail: #1e1f22;
+  --color-dc-channel: #232428;
+  --color-dc-hover: #3f4147;
+  --color-dc-input: #383a40;
+  --color-dc-text: #f2f3f5;
+  --color-dc-muted: #949ba4;
+  --color-fb-primary: #5865f2;
+  --color-fb-primary-hover: #4752c4;
+  --color-fb-bg: #313338;
+  --color-fb-card: #2b2d31;
+  --color-fb-border: #1e1f22;
+  --color-fb-text: #f2f3f5;
+  --color-fb-muted: #949ba4;
+}
+
+body {
+  margin: 0;
+  background: var(--color-dc-bg);
+  color: var(--color-dc-text);
+  font-family: 'gg sans', 'Noto Sans', Helvetica, Arial, sans-serif;
+}

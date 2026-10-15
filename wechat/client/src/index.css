@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-wx-green: #07c160;
+  --color-wx-green-dark: #06ad56;
+  --color-wx-bg: #ededed;
+  --color-wx-panel: #ffffff;
+  --color-wx-header: #ededed;
+  --color-wx-chat: #f5f5f5;
+  --color-wx-incoming: #ffffff;
+  --color-wx-outgoing: #95ec69;
+  --color-wx-border: #d9d9d9;
+  --color-wx-text: #191919;
+  --color-wx-muted: #888888;
+  --color-fb-primary: #07c160;
+  --color-fb-primary-hover: #06ad56;
+  --color-fb-bg: #ededed;
+  --color-fb-card: #ffffff;
+  --color-fb-border: #d9d9d9;
+  --color-fb-text: #191919;
+  --color-fb-muted: #888888;
+}
+
+body {
+  margin: 0;
+  background: var(--color-wx-bg);
+  color: var(--color-wx-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+}

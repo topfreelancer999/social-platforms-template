@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum PostPrivacy {
+  PUBLIC
+  FRIENDS
+  ONLY_ME
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  HAHA
+  WOW
+  SAD
+  ANGRY
+}
+
+enum GroupPrivacy {
+  PUBLIC
+  PRIVATE
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+  ANNOUNCEMENT
+}
+
+enum ServerRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum NotificationType {
+  CHANNEL_MESSAGE
+  MENTION
+  FRIEND_REQUEST
+  COMMENT
+  MESSAGE
+  GROUP_INVITE
+  SERVER_INVITE
+  REVIEW
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  username     String   @unique
+  displayName  String   @default("")
+  firstName    String
+  lastName     String
+  bio          String   @default("")
+  location     String   @default("")
+  avatarUrl    String
+  coverUrl     String
+  status       String   @default("online")
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  settings           UserSettings?
+  ownedServers       Server[]           @relation("ServerOwner")
+  serverMembers      ServerMember[]
+  channelMessages    ChannelMessage[]
+  posts              Post[]
+  comments           Comment[]
+  reactions          Reaction[]
+  shares             Share[]
+  groupMembers       GroupMember[]
+  createdGroups      Group[]            @relation("GroupCreator")
+  notifications      Notification[]     @relation("NotificationUser")
+  actorNotifications Notification[]     @relation("NotificationActor")
+  messages           Message[]
+  threadParticipants ThreadParticipant[]
+  reviews            Review[]
+  feedbacks          Feedback[]
+  reports            Report[]
+}
+
+model UserSettings {
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  profileVisibility  String  @default("public")
+  messageRequests    String  @default("everyone")
+  compactMode        Boolean @default(false)
+}
+
+model Server {
+  id          String         @id @default(cuid())
+  name        String
+  description String         @default("")
+  iconUrl     String
+  ownerId     String
+  createdAt   DateTime       @default(now())
+  owner       User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  members     ServerMember[]
+  channels    Channel[]
+}
+
+model ServerMember {
+  id       String     @id @default(cuid())
+  serverId String
+  userId   String
+  role     ServerRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+  server   Server     @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, userId])
+}
+
+model Channel {
+  id        String      @id @default(cuid())
+  serverId  String
+  name      String
+  topic     String      @default("")
+  type      ChannelType @default(TEXT)
+  position  Int         @default(0)
+  createdAt DateTime    @default(now())
+  server    Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages  ChannelMessage[]
+}
+
+model ChannelMessage {
+  id        String   @id @default(cuid())
+  channelId String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        String      @id @default(cuid())
+  authorId  String
+  content   String
+  imageUrl  String?
+  privacy   PostPrivacy @default(PUBLIC)
+  groupId   String?
+  createdAt DateTime    @default(now())
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group     Group?      @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  reactions Reaction[]
+  shares    Share[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  postId    String
+  userId    String
+  type      ReactionType
+  createdAt DateTime     @default(now())
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Share {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Group {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String
+  privacy     GroupPrivacy @default(PUBLIC)
+  creatorId   String
+  createdAt   DateTime     @default(now())
+  creator     User         @relation("GroupCreator", fields: [creatorId], references: [id])
+  members     GroupMember[]
+  posts       Post[]
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  groupId  String
+  userId   String
+  joinedAt DateTime @default(now())
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    String
+  description String
+  imageUrl    String
+  coverUrl    String
+  createdAt   DateTime @default(now())
+  reviews     Review[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  pageId    String?
+  userId    String
+  rating    Int
+  content   String
+  createdAt DateTime @default(now())
+  page      Page?    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Thread {
+  id           String              @id @default(cuid())
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  participants ThreadParticipant[]
+  messages     Message[]
+}
+
+model ThreadParticipant {
+  id       String @id @default(cuid())
+  threadId String
+  userId   String
+  unread   Int    @default(0)
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  threadId  String
+  senderId  String
+  content   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  actorId   String?
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  message   String
+  rating    Int?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  createdAt  DateTime @default(now())
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime
+  location    String
+  imageUrl    String
+  attendeeIds Json     @default("[]")
+}

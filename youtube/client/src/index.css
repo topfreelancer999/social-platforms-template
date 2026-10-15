@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-yt-red: #ff0000;
+  --color-yt-red-dark: #cc0000;
+  --color-yt-bg: #0f0f0f;
+  --color-yt-surface: #212121;
+  --color-yt-hover: #3f3f3f;
+  --color-yt-text: #f1f1f1;
+  --color-yt-muted: #aaaaaa;
+  --color-fb-primary: #ff0000;
+  --color-fb-primary-hover: #cc0000;
+  --color-fb-bg: #0f0f0f;
+  --color-fb-card: #212121;
+  --color-fb-border: #3f3f3f;
+  --color-fb-text: #f1f1f1;
+  --color-fb-muted: #aaaaaa;
+}
+
+body {
+  margin: 0;
+  background: var(--color-yt-bg);
+  color: var(--color-yt-text);
+  font-family: Roboto, Arial, sans-serif;
+}

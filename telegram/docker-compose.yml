@@ -1,0 +1,18 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6392:6379'
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: telegram
+      POSTGRES_PASSWORD: telegram
+      POSTGRES_DB: telegram
+    ports:
+      - '5445:5432'
+    volumes:
+      - telegram_pg:/var/lib/postgresql/data
+
+volumes:
+  telegram_pg:

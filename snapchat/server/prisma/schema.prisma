@@ -1,0 +1,270 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum SnapType {
+  SNAP
+  STORY
+  SPOTLIGHT
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+}
+
+enum GroupPrivacy {
+  PUBLIC
+  PRIVATE
+}
+
+enum NotificationType {
+  SNAP
+  STORY
+  FRIEND_REQUEST
+  MESSAGE
+  GROUP_INVITE
+  CHANNEL_POST
+  REVIEW
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  username     String   @unique
+  displayName  String   @default("")
+  firstName    String
+  lastName     String
+  bio          String   @default("")
+  snapScore    Int      @default(0)
+  avatarUrl    String
+  bitmojiUrl   String   @default("")
+  createdAt    DateTime @default(now())
+
+  settings            UserSettings?
+  snaps               Snap[]
+  snapViews           SnapView[]
+  sentFriendships     Friendship[]      @relation("FriendSender")
+  receivedFriendships Friendship[]      @relation("FriendReceiver")
+  channelFollows      ChannelFollow[]
+  ownedChannels       Channel[]         @relation("ChannelOwner")
+  groupMembers        GroupMember[]
+  createdGroups       Group[]           @relation("GroupCreator")
+  notifications       Notification[]    @relation("NotificationUser")
+  actorNotifications  Notification[]    @relation("NotificationActor")
+  messages            Message[]
+  threadParticipants  ThreadParticipant[]
+  reviews             Review[]
+  feedbacks           Feedback[]
+  reports             Report[]
+}
+
+model UserSettings {
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  profileVisibility  String  @default("friends")
+  messageRequests    String  @default("friends")
+  storyPrivacy       String  @default("friends")
+}
+
+model Friendship {
+  id         String           @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  sender     User             @relation("FriendSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User             @relation("FriendReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Snap {
+  id        String   @id @default(cuid())
+  authorId  String
+  caption   String   @default("")
+  imageUrl  String
+  videoUrl  String?
+  type      SnapType @default(SNAP)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  views     SnapView[]
+}
+
+model SnapView {
+  id        String   @id @default(cuid())
+  snapId    String
+  viewerId  String
+  createdAt DateTime @default(now())
+  snap      Snap     @relation(fields: [snapId], references: [id], onDelete: Cascade)
+  viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@unique([snapId, viewerId])
+}
+
+model Channel {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  name        String
+  description String          @default("")
+  imageUrl    String
+  ownerId     String
+  createdAt   DateTime        @default(now())
+  owner       User            @relation("ChannelOwner", fields: [ownerId], references: [id])
+  followers   ChannelFollow[]
+  posts       ChannelPost[]
+}
+
+model ChannelFollow {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  createdAt DateTime @default(now())
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+}
+
+model ChannelPost {
+  id        String   @id @default(cuid())
+  channelId String
+  caption   String   @default("")
+  imageUrl  String
+  videoUrl  String?
+  createdAt DateTime @default(now())
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+}
+
+model Group {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String
+  privacy     GroupPrivacy @default(PUBLIC)
+  creatorId   String
+  createdAt   DateTime     @default(now())
+  creator     User         @relation("GroupCreator", fields: [creatorId], references: [id])
+  members     GroupMember[]
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  groupId  String
+  userId   String
+  joinedAt DateTime @default(now())
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Thread {
+  id           String              @id @default(cuid())
+  isGroup      Boolean             @default(false)
+  name         String?
+  avatarUrl    String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  participants ThreadParticipant[]
+  messages     Message[]
+}
+
+model ThreadParticipant {
+  id       String @id @default(cuid())
+  threadId String
+  userId   String
+  unread   Int    @default(0)
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  threadId  String
+  senderId  String
+  content   String
+  snapId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    String
+  description String
+  imageUrl    String
+  coverUrl    String
+  createdAt   DateTime @default(now())
+  reviews     Review[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  pageId    String?
+  userId    String
+  rating    Int
+  content   String
+  createdAt DateTime @default(now())
+  page      Page?    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  actorId   String?
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  message   String
+  rating    Int?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  createdAt  DateTime @default(now())
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime
+  location    String
+  imageUrl    String
+  attendeeIds Json     @default("[]")
+}
