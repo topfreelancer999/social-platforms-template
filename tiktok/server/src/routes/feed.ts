@@ -1,48 +1,50 @@
-import { Router } from 'express'
+import { Router, type Response } from 'express'
+import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { getFollowingIds, isBlocked } from '../services/follows.js'
-import { enrichVideo } from '../services/videos.js'
+import { getFollowingFeed, getForYouFeed, InvalidCursorError } from '../services/feed.js'
 
 export const feedRouter = Router()
 feedRouter.use(requireAuth)
 
 const PAGE_SIZE = 10
 
-feedRouter.get('/for-you', async (req: AuthRequest, res) => {
-  const userId = req.userId!
-  const page = Math.max(1, Number(req.query.page ?? 1))
-  const videos = await prisma.video.findMany({
-    orderBy: [{ viewCount: 'desc' }, { createdAt: 'desc' }],
-    skip: (page - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-  })
-  const items = []
-  for (const v of videos) {
-    if (await isBlocked(userId, v.authorId)) continue
-    const e = await enrichVideo(v.id, userId)
-    if (e) items.push(e)
-  }
-  res.json({ items, page, hasMore: videos.length === PAGE_SIZE })
+const videoFeedQuery = z.object({
+  cursor: z.string().max(512).optional(),
+  limit: z.coerce.number().int().min(1).max(20).default(8),
+  seed: z
+    .string()
+    .regex(/^[a-z0-9]{1,16}$/i, 'seed must be 1-16 alphanumeric characters')
+    .optional(),
 })
 
-feedRouter.get('/following', async (req: AuthRequest, res) => {
-  const userId = req.userId!
-  const page = Math.max(1, Number(req.query.page ?? 1))
-  const followingIds = await getFollowingIds(userId)
-  const videos = await prisma.video.findMany({
-    where: { authorId: { in: [...followingIds, userId] } },
-    orderBy: { createdAt: 'desc' },
-    skip: (page - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-  })
-  const items = []
-  for (const v of videos) {
-    const e = await enrichVideo(v.id, userId)
-    if (e) items.push(e)
+function handleFeedError(err: unknown, res: Response) {
+  if (err instanceof InvalidCursorError) return res.status(400).json({ message: err.message })
+  throw err
+}
+
+/** Ranked mix of recent + engaging videos from everyone except the viewer and blocked users. */
+feedRouter.get('/for-you', async (req: AuthRequest, res) => {
+  const query = videoFeedQuery.safeParse(req.query)
+  if (!query.success) return res.status(400).json({ message: query.error.issues[0]?.message ?? 'Invalid query' })
+  try {
+    res.json(await getForYouFeed(req.userId!, query.data))
+  } catch (err) {
+    handleFeedError(err, res)
   }
-  res.json({ items, page, hasMore: videos.length === PAGE_SIZE })
+})
+
+/** Newest-first videos from creators the viewer follows (keyset cursor pagination). */
+feedRouter.get('/following', async (req: AuthRequest, res) => {
+  const query = videoFeedQuery.safeParse(req.query)
+  if (!query.success) return res.status(400).json({ message: query.error.issues[0]?.message ?? 'Invalid query' })
+  try {
+    res.json(await getFollowingFeed(req.userId!, query.data))
+  } catch (err) {
+    handleFeedError(err, res)
+  }
 })
 
 feedRouter.get('/', async (req: AuthRequest, res) => {

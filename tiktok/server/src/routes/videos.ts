@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
 import { linkHashtags } from '../lib/hashtags.js'
 import type { AuthRequest } from '../middleware/auth.js'
@@ -60,9 +61,14 @@ videosRouter.post('/', async (req: AuthRequest, res) => {
   res.status(201).json(await enrichVideo(video.id, req.userId!))
 })
 
+async function videoExists(videoId: string) {
+  return !!(await prisma.video.findUnique({ where: { id: videoId }, select: { id: true } }))
+}
+
 videosRouter.post('/:id/like', async (req: AuthRequest, res) => {
   const videoId = param(req, 'id')
   const userId = req.userId!
+  if (!(await videoExists(videoId))) return res.status(404).json({ message: 'Not found' })
   const existing = await prisma.videoLike.findUnique({
     where: { videoId_userId: { videoId, userId } },
   })
@@ -88,12 +94,43 @@ videosRouter.post('/:id/comment', async (req: AuthRequest, res) => {
 videosRouter.post('/:id/bookmark', async (req: AuthRequest, res) => {
   const videoId = param(req, 'id')
   const userId = req.userId!
+  if (!(await videoExists(videoId))) return res.status(404).json({ message: 'Not found' })
   const existing = await prisma.bookmark.findUnique({
     where: { videoId_userId: { videoId, userId } },
   })
   if (existing) await prisma.bookmark.delete({ where: { id: existing.id } })
   else await prisma.bookmark.create({ data: { videoId, userId } })
-  res.json({ ok: true })
+  const bookmarkCount = await prisma.bookmark.count({ where: { videoId } })
+  res.json({ ok: true, bookmarked: !existing, bookmarkCount })
+})
+
+/** Counted by the feed once a video has been on screen and playing for ~2s. */
+videosRouter.post('/:id/view', async (req: AuthRequest, res) => {
+  const videoId = param(req, 'id')
+  if (!(await videoExists(videoId))) return res.status(404).json({ message: 'Not found' })
+  const video = await prisma.video.update({
+    where: { id: videoId },
+    data: { viewCount: { increment: 1 } },
+    select: { viewCount: true },
+  })
+  res.json({ viewCount: video.viewCount })
+})
+
+const shareSchema = z.object({
+  channel: z.enum(['copy_link', 'native', 'message']).default('copy_link'),
+})
+
+videosRouter.post('/:id/share', async (req: AuthRequest, res) => {
+  const videoId = param(req, 'id')
+  const body = shareSchema.safeParse(req.body ?? {})
+  if (!body.success) return res.status(400).json({ message: body.error.issues[0]?.message ?? 'Invalid body' })
+  if (!(await videoExists(videoId))) return res.status(404).json({ message: 'Not found' })
+  const video = await prisma.video.update({
+    where: { id: videoId },
+    data: { shareCount: { increment: 1 } },
+    select: { shareCount: true },
+  })
+  res.json({ shareCount: video.shareCount, channel: body.data.channel })
 })
 
 videosRouter.delete('/:id', async (req: AuthRequest, res) => {

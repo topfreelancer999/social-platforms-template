@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { VideoSlide, type VideoItem } from './VideoSlide'
+import { VideoSlide } from './VideoSlide'
+import type { VideoItem } from './types'
 
 export function VideoDetailPage() {
   const { id } = useParams()

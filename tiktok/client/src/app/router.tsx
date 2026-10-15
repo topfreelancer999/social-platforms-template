@@ -3,8 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RegisterPage } from '@/features/auth/RegisterPage'
-import { ForYouPage } from '@/features/feed/ForYouPage'
-import { FollowingPage } from '@/features/feed/FollowingPage'
+import { VideoFeedPage } from '@/features/feed/VideoFeedPage'
 import { UploadPage } from '@/features/upload/UploadPage'
 import { DiscoverPage } from '@/features/discover/DiscoverPage'
 import { ProfilePage } from '@/features/profile/ProfilePage'
@@ -46,8 +45,8 @@ export function AppRouter() {
         <Route path="/login" element={<Public><LoginPage /></Public>} />
         <Route path="/register" element={<Public><RegisterPage /></Public>} />
       </Route>
-      <Route path="/" element={<Private><ForYouPage /></Private>} />
-      <Route path="/following" element={<Private><FollowingPage /></Private>} />
+      <Route path="/" element={<Private><VideoFeedPage key="for-you" tab="for-you" /></Private>} />
+      <Route path="/following" element={<Private><VideoFeedPage key="following" tab="following" /></Private>} />
       <Route path="/upload" element={<Private><UploadPage /></Private>} />
       <Route path="/discover" element={<Private><DiscoverPage /></Private>} />
       <Route path="/inbox" element={<Private><MessagingPage /></Private>} />

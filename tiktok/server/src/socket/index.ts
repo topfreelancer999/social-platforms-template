@@ -12,13 +12,16 @@ export async function setupSocket(httpServer: HttpServer) {
     cors: { origin: config.clientUrl, credentials: true },
   })
 
-  try {
-    const pub = createClient({ url: config.redisUrl })
-    const sub = pub.duplicate()
-    await Promise.all([pub.connect(), sub.connect()])
-    io.adapter(createAdapter(pub, sub))
-  } catch (e) {
-    console.warn('Socket.io Redis adapter unavailable:', e)
+  // Without REDIS_URL, node-redis would retry localhost forever and the HTTP server would never listen.
+  if (config.redisUrl) {
+    try {
+      const pub = createClient({ url: config.redisUrl })
+      const sub = pub.duplicate()
+      await Promise.all([pub.connect(), sub.connect()])
+      io.adapter(createAdapter(pub, sub))
+    } catch (e) {
+      console.warn('Socket.io Redis adapter unavailable:', e)
+    }
   }
 
   io.use((socket, next) => {

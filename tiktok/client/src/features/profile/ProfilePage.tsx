@@ -4,7 +4,7 @@ import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { BottomNav } from '@/components/layout/BottomNav'
-import type { VideoItem } from '@/features/feed/VideoSlide'
+import type { VideoItem } from '@/features/feed/types'
 
 export function ProfilePage() {
   const { username } = useParams()

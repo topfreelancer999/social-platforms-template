@@ -30,6 +30,9 @@ followsRouter.get('/', async (req: AuthRequest, res) => {
 followsRouter.post('/:id', async (req: AuthRequest, res) => {
   const followerId = req.userId!
   const followingId = param(req, 'id')
+  if (followingId === followerId) return res.status(400).json({ message: 'You cannot follow yourself' })
+  const target = await prisma.user.findUnique({ where: { id: followingId }, select: { id: true } })
+  if (!target) return res.status(404).json({ message: 'User not found' })
   await prisma.follow.upsert({
     where: { followerId_followingId: { followerId, followingId } },
     create: { followerId, followingId },

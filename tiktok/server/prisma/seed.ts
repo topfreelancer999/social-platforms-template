@@ -21,6 +21,10 @@ const captions = [
   'Travel diaries ✈️ #travel #wanderlust',
   'Recipe in 60 seconds #food #cooking',
   'Dance challenge #dance #fyp',
+  'Morning routine that changed my life #lifestyle #fyp',
+  'Wait for the ending 😳 #viral #comedy',
+  'Leg day, no excuses 💪 #fitness #gym',
+  'Hidden gem in Lisbon 🇵🇹 #travel',
 ]
 
 async function main() {
@@ -58,6 +62,8 @@ async function main() {
     { email: 'mike.j@email.com', username: 'mike-funny', firstName: 'Mike', lastName: 'Jones', bio: 'Comedy skits' },
     { email: 'emma.w@email.com', username: 'emma-travel', firstName: 'Emma', lastName: 'Wilson', bio: 'Travel vlogs' },
     { email: 'david.l@email.com', username: 'david-tech', firstName: 'David', lastName: 'Lee', bio: 'Tech tips' },
+    { email: 'nina.c@email.com', username: 'nina-cooks', firstName: 'Nina', lastName: 'Costa', bio: '60-second recipes', verified: true },
+    { email: 'leo.f@email.com', username: 'leo-fitness', firstName: 'Leo', lastName: 'Park', bio: 'Daily workouts' },
   ]
 
   const createdUsers = []
@@ -75,7 +81,7 @@ async function main() {
     createdUsers.push(user)
   }
 
-  const [alex, sarah, mike, emma, david] = createdUsers
+  const [alex, sarah, mike, emma, david, nina, leo] = createdUsers
 
   const sounds = await Promise.all([
     prisma.sound.create({ data: { title: 'Original Sound - Alex', artist: 'alex-creates', audioUrl: '', coverUrl: 'https://picsum.photos/seed/s1/100' } }),
@@ -83,12 +89,20 @@ async function main() {
     prisma.sound.create({ data: { title: 'Viral Dance', artist: 'sarah-dance', audioUrl: '', coverUrl: 'https://picsum.photos/seed/s3/100', useCount: 890 } }),
   ])
 
-  for (const [follower, following] of [[mike, alex], [mike, sarah], [emma, alex], [david, sarah], [alex, sarah], [sarah, alex]] as const) {
+  // Demo user (alex) follows sarah, mike and emma -> Following tab; david, nina and leo only reach alex via For You.
+  for (const [follower, following] of [
+    [mike, alex], [mike, sarah], [emma, alex], [david, sarah], [sarah, alex], [nina, alex], [leo, sarah],
+    [alex, sarah], [alex, mike], [alex, emma],
+  ] as const) {
     await prisma.follow.create({ data: { followerId: follower.id, followingId: following.id } })
   }
 
-  for (let i = 0; i < 18; i++) {
+  // 28 videos spread over 7 creators and ~3 days, with varied engagement so the For You ranking has signal.
+  const fans = [sarah, mike, emma, david, nina, leo, alex]
+  const commentTexts = ['This is fire 🔥', 'Obsessed 😍', 'Need part 2!', 'How did you do that?', 'Saved for later 📌']
+  for (let i = 0; i < 28; i++) {
     const author = createdUsers[i % createdUsers.length]
+    const engagement = [3, 0, 5, 1, 4, 2, 5, 1][i % 8] // deterministic but uneven
     const video = await prisma.video.create({
       data: {
         authorId: author.id,
@@ -97,18 +111,23 @@ async function main() {
         caption: captions[i % captions.length],
         soundId: sounds[i % sounds.length].id,
         duration: 15 + (i % 30),
-        viewCount: 1000 + i * 500,
-        createdAt: new Date(Date.now() - i * 7200000),
+        viewCount: 800 + engagement * 2400 + i * 37,
+        shareCount: engagement * 9 + (i % 4),
+        createdAt: new Date(Date.now() - i * 2.5 * 3600000),
       },
     })
     await linkHashtags(video.id, video.caption)
-    if (i < 8) {
-      await prisma.videoLike.create({ data: { videoId: video.id, userId: mike.id } })
-      if (i % 2 === 0) {
-        await prisma.videoComment.create({
-          data: { videoId: video.id, userId: sarah.id, content: 'This is fire 🔥' },
-        })
-      }
+    const likers = fans.filter((u) => u.id !== author.id).slice(0, engagement + 1)
+    for (const u of likers) {
+      await prisma.videoLike.create({ data: { videoId: video.id, userId: u.id } })
+    }
+    for (const [k, u] of likers.slice(0, Math.ceil(engagement / 2)).entries()) {
+      await prisma.videoComment.create({
+        data: { videoId: video.id, userId: u.id, content: commentTexts[(i + k) % commentTexts.length] },
+      })
+    }
+    for (const u of likers.slice(0, Math.floor(engagement / 2))) {
+      await prisma.bookmark.create({ data: { videoId: video.id, userId: u.id } })
     }
   }
 

@@ -119,6 +119,7 @@ model Video {
   duration     Int      @default(15)
   soundId      String?
   viewCount    Int      @default(0)
+  shareCount   Int      @default(0)
   duetOfId     String?
   createdAt    DateTime @default(now())
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -127,6 +128,9 @@ model Video {
   comments     VideoComment[]
   bookmarks    Bookmark[]
   hashtags     VideoHashtag[]
+
+  @@index([authorId, createdAt])
+  @@index([createdAt])
 }
 
 model VideoLike {
