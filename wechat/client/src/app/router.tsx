@@ -7,12 +7,17 @@ import { RegisterPage } from '@/features/auth/RegisterPage'
 import { ChatsPage } from '@/features/chats/ChatsPage'
 import { ChatPage } from '@/features/chats/ChatPage'
 import { MomentsPage } from '@/features/moments/MomentsPage'
+import { PostMomentPage } from '@/features/moments/PostMomentPage'
+import { UserMomentsPage } from '@/features/moments/UserMomentsPage'
+import { MomentDetailPage } from '@/features/moments/MomentDetailPage'
 import { DiscoverPage } from '@/features/discover/DiscoverPage'
 import { MePage } from '@/features/me/MePage'
 import { ChannelsPage } from '@/features/channels/ChannelsPage'
 import { ChannelDetailPage } from '@/features/channels/ChannelDetailPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { NewChatPage } from '@/features/contacts/NewChatPage'
+import { TagsPage } from '@/features/contacts/TagsPage'
+import { TagEditPage } from '@/features/contacts/TagEditPage'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 import { ProfileEditPage } from '@/features/profile/ProfileEditPage'
 import { SearchPage } from '@/features/search/SearchPage'
@@ -51,8 +56,14 @@ export function AppRouter() {
         <Route path="chat/:threadId" element={<ChatPage />} />
         <Route path="contacts" element={<ContactsPage />} />
         <Route path="contacts/new" element={<NewChatPage />} />
+        <Route path="contacts/tags" element={<TagsPage />} />
+        <Route path="contacts/tags/new" element={<TagEditPage />} />
+        <Route path="contacts/tags/:id" element={<TagEditPage />} />
         <Route path="discover" element={<DiscoverPage />} />
         <Route path="moments" element={<MomentsPage />} />
+        <Route path="moments/post" element={<PostMomentPage />} />
+        <Route path="moments/user/:username" element={<UserMomentsPage />} />
+        <Route path="moments/:id" element={<MomentDetailPage />} />
         <Route path="me" element={<MePage />} />
         <Route path="channels" element={<ChannelsPage />} />
         <Route path="channels/:slug" element={<ChannelDetailPage />} />

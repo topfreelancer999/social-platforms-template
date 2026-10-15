@@ -16,7 +16,7 @@ export function MePage() {
   })
 
   const menu = [
-    { to: '/moments', icon: MessageSquare, label: 'Moments' },
+    { to: user ? `/moments/user/${user.username}` : '/moments', icon: MessageSquare, label: 'Moments' },
     { to: '/channels', icon: Star, label: 'Official Accounts' },
     { to: '/groups', icon: Star, label: 'Communities' },
     { to: '/notifications', icon: Bell, label: 'Notifications' },

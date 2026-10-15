@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Card } from '@/components/ui/Card'
+import { MomentsPrivacySettings } from './MomentsPrivacySettings'
 
 const sections = [
   { id: 'account', label: 'Account' },
@@ -49,6 +50,10 @@ export function SettingsPage() {
                 <option value="friends">Friends</option>
               </select>
             </label>
+            <MomentsPrivacySettings
+              range={typeof s.momentsRange === 'string' ? s.momentsRange : 'ALL'}
+              onRangeChange={(momentsRange) => save.mutate({ momentsRange })}
+            />
           </>
         )}
         {section === 'notifications' && (

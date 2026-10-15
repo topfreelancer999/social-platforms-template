@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
+import { canViewMoment, loadViewerContext } from '../services/moments.js'
 
 export const searchRouter = Router()
 searchRouter.use(requireAuth)
@@ -46,9 +47,16 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
     )
   }
   if (type === 'all' || type === 'moments') {
-    const moments = await prisma.moment.findMany({ take: 30, include: { author: true } })
+    const ctx = await loadViewerContext(req.userId!)
+    const moments = await prisma.moment.findMany({
+      where: { authorId: { in: [ctx.viewerId, ...ctx.friendIds] } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: { author: true, audience: true },
+    })
     result.moments = moments
-      .filter((m) => contains(m.content) || contains(m.location))
+      .filter((m) => canViewMoment(ctx, m) && (contains(m.content) || contains(m.location)))
+      .slice(0, 30)
       .map((m) => ({ id: m.id, content: m.content, author: toPublicUser(m.author) }))
   }
   if (type === 'all' || type === 'groups') {

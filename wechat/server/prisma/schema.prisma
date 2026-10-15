@@ -18,6 +18,20 @@ enum GroupPrivacy {
   PRIVATE
 }
 
+enum MomentVisibility {
+  PUBLIC
+  PRIVATE
+  INCLUDE
+  EXCLUDE
+}
+
+enum MomentsRange {
+  ALL
+  SIX_MONTHS
+  ONE_MONTH
+  THREE_DAYS
+}
+
 enum NotificationType {
   MESSAGE
   GROUP_INVITE
@@ -61,18 +75,67 @@ model User {
   reviews            Review[]
   feedbacks          Feedback[]
   reports            Report[]
+  friendships        Friendship[]        @relation("FriendshipOwner")
+  friendOf           Friendship[]        @relation("FriendshipFriend")
+  contactTags        ContactTag[]
+  tagMemberships     ContactTagMember[]
+  momentAudiences    MomentAudience[]
+}
+
+/// Directional contact row: one row per side of a friendship. Two rows (A->B, B->A) = mutual friends.
+/// The flags are the owner's per-contact Moments privacy choices.
+model Friendship {
+  id               String   @id @default(cuid())
+  userId           String
+  friendId         String
+  /// "Don't let them see my Moments"
+  blockMyMoments   Boolean  @default(false)
+  /// "Hide their Moments" (from my feed)
+  hideTheirMoments Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  user             User     @relation("FriendshipOwner", fields: [userId], references: [id], onDelete: Cascade)
+  friend           User     @relation("FriendshipFriend", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([friendId])
+}
+
+/// Contact label ("tag") such as Family or Colleagues, owned by one user.
+model ContactTag {
+  id        String             @id @default(cuid())
+  ownerId   String
+  name      String
+  createdAt DateTime           @default(now())
+  owner     User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members   ContactTagMember[]
+  audiences MomentAudience[]
+
+  @@unique([ownerId, name])
+}
+
+model ContactTagMember {
+  id     String     @id @default(cuid())
+  tagId  String
+  userId String
+  tag    ContactTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, userId])
+  @@index([userId])
 }
 
 model UserSettings {
-  id                 String  @id @default(cuid())
-  userId             String  @unique
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailNotifications Boolean @default(true)
-  pushNotifications  Boolean @default(true)
-  profileVisibility  String  @default("everyone")
-  messageRequests    String  @default("everyone")
-  readReceipts       Boolean @default(true)
-  momentsVisible     String  @default("friends")
+  id                 String       @id @default(cuid())
+  userId             String       @unique
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications Boolean      @default(true)
+  pushNotifications  Boolean      @default(true)
+  profileVisibility  String       @default("everyone")
+  messageRequests    String       @default("everyone")
+  readReceipts       Boolean      @default(true)
+  momentsVisible     String       @default("friends")
+  /// How far back non-self viewers can see this user's Moments
+  momentsRange       MomentsRange @default(ALL)
 }
 
 model Thread {
@@ -113,15 +176,32 @@ model Message {
 }
 
 model Moment {
-  id        String         @id @default(cuid())
-  authorId  String
-  content   String         @default("")
-  imageUrl  String?
-  location  String         @default("")
-  createdAt DateTime       @default(now())
-  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likes     MomentLike[]
-  comments  MomentComment[]
+  id         String           @id @default(cuid())
+  authorId   String
+  content    String           @default("")
+  imageUrl   String?
+  location   String           @default("")
+  visibility MomentVisibility @default(PUBLIC)
+  createdAt  DateTime         @default(now())
+  author     User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes      MomentLike[]
+  comments   MomentComment[]
+  audience   MomentAudience[]
+
+  @@index([authorId, createdAt])
+}
+
+/// Tags and/or contacts selected for an INCLUDE ("Visible to") or EXCLUDE ("Don't share with") Moment.
+model MomentAudience {
+  id       String      @id @default(cuid())
+  momentId String
+  tagId    String?
+  userId   String?
+  moment   Moment      @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  tag      ContactTag? @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user     User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([momentId])
 }
 
 model MomentLike {
@@ -180,14 +260,14 @@ model ChannelPost {
 }
 
 model Group {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String
   imageUrl    String
-  privacy     GroupPrivacy @default(PUBLIC)
+  privacy     GroupPrivacy  @default(PUBLIC)
   creatorId   String
-  createdAt   DateTime     @default(now())
-  creator     User         @relation("GroupCreator", fields: [creatorId], references: [id])
+  createdAt   DateTime      @default(now())
+  creator     User          @relation("GroupCreator", fields: [creatorId], references: [id])
   members     GroupMember[]
 }
 

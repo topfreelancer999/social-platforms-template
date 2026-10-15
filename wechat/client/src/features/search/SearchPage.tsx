@@ -50,7 +50,7 @@ export function SearchPage() {
       <div className="flex-1 overflow-y-auto px-4">
         {tab === 'contacts' && Array.isArray(data?.contacts) &&
           (data.contacts as { id: string; username: string; displayName?: string; firstName: string }[]).map((u) => (
-            <Link key={u.id} to={`/contacts/new?userId=${u.id}`} className="block py-2 text-sm border-b border-wx-border/30">
+            <Link key={u.id} to={`/profile/${u.username}`} className="block py-2 text-sm border-b border-wx-border/30">
               {u.displayName || u.firstName} (@{u.username})
             </Link>
           ))}
@@ -61,8 +61,8 @@ export function SearchPage() {
             </Link>
           ))}
         {tab === 'moments' && Array.isArray(data?.moments) &&
-          (data.moments as { id: string; content: string }[]).map((m, i) => (
-            <p key={i} className="block py-2 text-sm border-b border-wx-border">{m.content}</p>
+          (data.moments as { id: string; content: string }[]).map((m) => (
+            <Link key={m.id} to={`/moments/${m.id}`} className="block py-2 text-sm border-b border-wx-border">{m.content}</Link>
           ))}
       {tab === 'channels' && Array.isArray(data?.channels) &&
           (data.channels as { slug: string; name: string }[]).map((c) => (
