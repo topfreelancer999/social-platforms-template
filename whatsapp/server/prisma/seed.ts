@@ -12,6 +12,7 @@ async function main() {
   await prisma.channelFollow.deleteMany()
   await prisma.channel.deleteMany()
   await prisma.status.deleteMany()
+  await prisma.messageReceipt.deleteMany()
   await prisma.message.deleteMany()
   await prisma.threadParticipant.deleteMany()
   await prisma.thread.deleteMany()
@@ -48,19 +49,61 @@ async function main() {
 
   const [alex, sarah, mike, emma, david] = created
 
-  const dm1 = await prisma.thread.create({
-    data: {
-      participants: { create: [{ userId: alex.id }, { userId: sarah.id, unread: 1 }] },
-      messages: {
-        create: [
-          { senderId: sarah.id, content: 'Hey Alex! Are we still on for lunch?', delivered: true },
-          { senderId: alex.id, content: 'Yes! 12:30 at the usual place 👍', read: true },
-          { senderId: sarah.id, content: 'Perfect, see you then!', delivered: true },
-        ],
-      },
+  const ago = (minutes: number) => new Date(Date.now() - minutes * 60000)
+  /** Receipt per recipient: `[deliveredMinutesAgo, readMinutesAgo]`, null = not yet. */
+  type R = [number | null, number | null]
+  const msg = (senderId: string, content: string, minutesAgo: number, receipts: Record<string, R>) => ({
+    senderId,
+    content,
+    createdAt: ago(minutesAgo),
+    receipts: {
+      create: Object.entries(receipts).map(([userId, [d, r]]) => ({
+        userId,
+        deliveredAt: d === null ? null : ago(d),
+        readAt: r === null ? null : ago(r),
+      })),
     },
   })
-  await prisma.thread.update({ where: { id: dm1.id }, data: { updatedAt: new Date() } })
+
+  // Privacy variety: Emma turned read receipts off, David hides last seen & online.
+  await prisma.userSettings.update({ where: { userId: emma.id }, data: { readReceipts: false } })
+  await prisma.userSettings.update({ where: { userId: david.id }, data: { lastSeenVisible: false } })
+  await prisma.user.update({ where: { id: sarah.id }, data: { lastSeen: ago(4) } })
+  await prisma.user.update({ where: { id: mike.id }, data: { lastSeen: ago(26 * 60) } })
+  await prisma.user.update({ where: { id: emma.id }, data: { lastSeen: ago(45) } })
+  await prisma.user.update({ where: { id: david.id }, data: { lastSeen: ago(3 * 24 * 60) } })
+
+  async function dm(other: typeof alex, alexUnread: number, messages: ReturnType<typeof msg>[]) {
+    const thread = await prisma.thread.create({
+      data: {
+        participants: { create: [{ userId: alex.id, unread: alexUnread }, { userId: other.id }] },
+        messages: { create: messages },
+      },
+    })
+    await prisma.thread.update({ where: { id: thread.id }, data: { updatedAt: messages[messages.length - 1].createdAt } })
+    return thread
+  }
+
+  // Blue ticks: Sarah read Alex's reply; her newest message is still unread for Alex.
+  const dm1 = await dm(sarah, 1, [
+    msg(sarah.id, 'Hey Alex! Are we still on for lunch?', 40, { [alex.id]: [39, 38] }),
+    msg(alex.id, 'Yes! 12:30 at the usual place 👍', 37, { [sarah.id]: [37, 30] }),
+    msg(sarah.id, 'Perfect, see you then!', 3, { [alex.id]: [3, null] }),
+  ])
+  // Double grey ticks: delivered to Mike's phone, not opened yet.
+  await dm(mike, 0, [
+    msg(mike.id, 'Did you push the release branch?', 26 * 60 + 30, { [alex.id]: [26 * 60 + 30, 26 * 60 + 20] }),
+    msg(alex.id, 'Pushed it last night, CI is green ✅', 26 * 60 + 10, { [mike.id]: [26 * 60 + 9, null] }),
+  ])
+  // Grey double ticks even though Emma read it: she has read receipts off.
+  await dm(emma, 0, [
+    msg(alex.id, 'Can you send me the photos from Saturday?', 90, { [emma.id]: [89, 50] }),
+  ])
+  // Single tick: David's phone has been offline since the message was sent.
+  await dm(david, 0, [
+    msg(david.id, 'Thanks for the intro yesterday!', 3 * 24 * 60 + 20, { [alex.id]: [3 * 24 * 60 + 20, 3 * 24 * 60 + 10] }),
+    msg(alex.id, 'Anytime! Let me know how the call goes', 2 * 24 * 60, { [david.id]: [null, null] }),
+  ])
 
   const groupThread = await prisma.thread.create({
     data: {
@@ -71,19 +114,21 @@ async function main() {
         create: [alex, sarah, mike, emma].map((u) => ({
           userId: u.id,
           isAdmin: u.id === alex.id,
-          unread: u.id === mike.id ? 2 : 0,
+          unread: u.id === mike.id ? 3 : 0,
         })),
       },
       messages: {
         create: [
-          { senderId: alex.id, content: 'Welcome to Weekend Trip group!' },
-          { senderId: mike.id, content: 'I can drive Saturday morning' },
-          { senderId: emma.id, content: 'I will bring snacks 🎉' },
+          msg(alex.id, 'Welcome to Weekend Trip group!', 180, { [sarah.id]: [180, 170], [mike.id]: [179, 120], [emma.id]: [178, 60] }),
+          msg(mike.id, 'I can drive Saturday morning', 100, { [alex.id]: [100, 95], [sarah.id]: [99, 80], [emma.id]: [99, 60] }),
+          msg(emma.id, 'I will bring snacks 🎉', 55, { [alex.id]: [55, 20], [sarah.id]: [54, 30], [mike.id]: [54, null] }),
+          // Group receipts ignore the privacy toggle: Message info shows Sarah and Emma read it, Mike only got it.
+          msg(alex.id, 'Leaving at 8am sharp, who needs a ride?', 15, { [sarah.id]: [15, 10], [mike.id]: [14, null], [emma.id]: [15, 12] }),
         ],
       },
     },
   })
-  await prisma.thread.update({ where: { id: groupThread.id }, data: { updatedAt: new Date() } })
+  await prisma.thread.update({ where: { id: groupThread.id }, data: { updatedAt: ago(15) } })
 
   const expires = new Date(Date.now() + 20 * 3600000)
   for (const u of [alex, sarah, mike]) {

@@ -1,52 +1,89 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { prisma } from '../lib/prisma.js'
 import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { param } from '../lib/params.js'
+import { presenceView } from '../lib/presence.js'
+import {
+  canSeeRead,
+  createMessage,
+  loadReceiptSettings,
+  markDelivered,
+  markThreadRead,
+  serializeMessage,
+} from '../services/messages.js'
 
 export const messagesRouter = Router()
 messagesRouter.use(requireAuth)
 
-function threadPreview(thread: {
-  isGroup: boolean
-  name: string | null
-  avatarUrl: string | null
-  participants: { userId: string; user: Parameters<typeof toPublicUser>[0] }[]
-  messages: { content: string; createdAt: Date; senderId: string; read: boolean }[]
-}, userId: string) {
-  const other = thread.participants.find((x) => x.userId !== userId)
-  const last = thread.messages[0]
-  return {
-    title: thread.isGroup ? thread.name : other ? (other.user.displayName || other.user.firstName) : 'Chat',
-    avatarUrl: thread.isGroup ? thread.avatarUrl : other?.user.avatarUrl,
-    participant: other ? toPublicUser(other.user) : null,
-    isGroup: thread.isGroup,
-    lastMessage: last,
-  }
+const sendSchema = z
+  .object({
+    content: z.string().trim().max(4096).default(''),
+    type: z.enum(['TEXT', 'IMAGE', 'DOCUMENT']).default('TEXT'),
+    mediaUrl: z.string().url().max(2048).optional(),
+  })
+  .refine((b) => b.content.length > 0 || !!b.mediaUrl, { message: 'Message is empty' })
+
+const newChatSchema = z.object({
+  toUserId: z.string().min(1),
+  content: z.string().trim().min(1).max(4096),
+})
+
+const newGroupSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  memberIds: z.array(z.string().min(1)).max(255).default([]),
+  content: z.string().trim().max(4096).optional(),
+})
+
+function badRequest(res: import('express').Response, error: z.ZodError) {
+  return res.status(400).json({ message: error.issues[0]?.message ?? 'Invalid request' })
 }
+
+type UserWithSettings = Parameters<typeof toPublicUser>[0] & {
+  settings: { lastSeenVisible: boolean; readReceipts: boolean } | null
+}
+
+function publicUser(u: UserWithSettings) {
+  const { settings: _settings, lastSeen: _lastSeen, ...rest } = u
+  return toPublicUser(rest as Parameters<typeof toPublicUser>[0])
+}
+
+const withSettings = { include: { user: { include: { settings: true } } } } as const
 
 messagesRouter.get('/threads', async (req: AuthRequest, res) => {
   const userId = req.userId!
+  // Fetching the chat list means this device has synced → pending messages are delivered.
+  await markDelivered(userId)
   const participants = await prisma.threadParticipant.findMany({
     where: { userId },
     include: {
       thread: {
         include: {
-          participants: { include: { user: true } },
-          messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+          participants: withSettings,
+          messages: { orderBy: { createdAt: 'desc' }, take: 1, include: { sender: true, receipts: true } },
         },
       },
     },
     orderBy: { thread: { updatedAt: 'desc' } },
   })
   res.json(
-    participants.map((p) => ({
-      id: p.thread.id,
-      unread: p.unread,
-      updatedAt: p.thread.updatedAt,
-      ...threadPreview(p.thread, userId),
-    })),
+    participants.map(({ thread, unread }) => {
+      const other = thread.participants.find((x) => x.userId !== userId)
+      const settings = new Map(thread.participants.map((p) => [p.userId, p.user.settings?.readReceipts ?? true]))
+      const last = thread.messages[0]
+      return {
+        id: thread.id,
+        unread,
+        updatedAt: thread.updatedAt,
+        isGroup: thread.isGroup,
+        title: thread.isGroup ? thread.name : other ? other.user.displayName || other.user.firstName : 'Chat',
+        avatarUrl: thread.isGroup ? thread.avatarUrl : other?.user.avatarUrl,
+        participant: other ? publicUser(other.user) : null,
+        lastMessage: last ? serializeMessage(last, userId, thread.isGroup, settings) : null,
+      }
+    }),
   )
 })
 
@@ -55,53 +92,78 @@ messagesRouter.get('/threads/:id', async (req: AuthRequest, res) => {
   const thread = await prisma.thread.findUnique({
     where: { id: param(req, 'id') },
     include: {
-      participants: { include: { user: true } },
-      messages: { orderBy: { createdAt: 'asc' }, include: { sender: true } },
+      participants: withSettings,
+      messages: { orderBy: { createdAt: 'asc' }, include: { sender: true, receipts: true } },
     },
   })
   if (!thread) return res.status(404).json({ message: 'Not found' })
-  const member = thread.participants.find((p) => p.userId === userId)
-  if (!member) return res.status(403).json({ message: 'Forbidden' })
-  await prisma.threadParticipant.update({
-    where: { threadId_userId: { threadId: thread.id, userId } },
-    data: { unread: 0 },
-  })
-  await prisma.message.updateMany({
-    where: { threadId: thread.id, senderId: { not: userId } },
-    data: { read: true },
-  })
-  const preview = threadPreview(
-    { ...thread, messages: thread.messages.slice(-1) },
-    userId,
-  )
+  const me = thread.participants.find((p) => p.userId === userId)
+  if (!me) return res.status(403).json({ message: 'Forbidden' })
+
+  const other = thread.participants.find((p) => p.userId !== userId)
+  const settings = new Map(thread.participants.map((p) => [p.userId, p.user.settings?.readReceipts ?? true]))
+  const viewerShares = me.user.settings?.lastSeenVisible ?? true
   res.json({
     thread: {
       id: thread.id,
       name: thread.name,
+      isGroup: thread.isGroup,
       updatedAt: thread.updatedAt,
-      ...preview,
+      title: thread.isGroup ? thread.name : other ? other.user.displayName || other.user.firstName : 'Chat',
+      avatarUrl: thread.isGroup ? thread.avatarUrl : other?.user.avatarUrl,
+      unread: me.unread,
       participants: thread.participants.map((p) => ({
-        ...toPublicUser(p.user),
+        ...publicUser(p.user),
         isAdmin: p.isAdmin,
+        ...(p.userId === userId ? { online: true, lastSeen: null } : presenceView(p.user, viewerShares)),
       })),
     },
-    messages: thread.messages.map((m) => ({
-      id: m.id,
-      content: m.content,
-      type: m.type,
-      mediaUrl: m.mediaUrl,
-      read: m.read,
-      delivered: m.delivered,
-      createdAt: m.createdAt,
-      senderId: m.senderId,
-      sender: toPublicUser(m.sender),
+    messages: thread.messages.map((m) => serializeMessage(m, userId, thread.isGroup, settings)),
+  })
+})
+
+messagesRouter.post('/threads/:id/read', async (req: AuthRequest, res) => {
+  const threadId = param(req, 'id')
+  const member = await prisma.threadParticipant.findUnique({
+    where: { threadId_userId: { threadId, userId: req.userId! } },
+  })
+  if (!member) return res.status(404).json({ message: 'Not found' })
+  const read = await markThreadRead(threadId, req.userId!)
+  res.json({ read })
+})
+
+messagesRouter.get('/:messageId/info', async (req: AuthRequest, res) => {
+  const userId = req.userId!
+  const message = await prisma.message.findUnique({
+    where: { id: param(req, 'messageId') },
+    include: {
+      sender: true,
+      thread: { select: { isGroup: true } },
+      receipts: { include: { user: true }, orderBy: { readAt: 'asc' } },
+    },
+  })
+  // Only the sender can open "Message info".
+  if (!message || message.senderId !== userId) return res.status(404).json({ message: 'Not found' })
+  const settings = await loadReceiptSettings([userId, ...message.receipts.map((r) => r.userId)])
+  res.json({
+    message: serializeMessage(message, userId, message.thread.isGroup, settings),
+    recipients: message.receipts.map((r) => ({
+      user: toPublicUser(r.user),
+      deliveredAt: r.deliveredAt,
+      readAt: canSeeRead(message.thread.isGroup, userId, r.userId, settings) ? r.readAt : null,
     })),
   })
 })
 
 messagesRouter.post('/threads', async (req: AuthRequest, res) => {
   const userId = req.userId!
-  const { toUserId, content } = req.body as { toUserId: string; content: string }
+  const parsed = newChatSchema.safeParse(req.body)
+  if (!parsed.success) return badRequest(res, parsed.error)
+  const { toUserId, content } = parsed.data
+  if (toUserId === userId) return res.status(400).json({ message: 'Cannot message yourself' })
+  if (!(await prisma.user.findUnique({ where: { id: toUserId }, select: { id: true } }))) {
+    return res.status(404).json({ message: 'User not found' })
+  }
   const existing = await prisma.thread.findMany({
     where: {
       isGroup: false,
@@ -113,82 +175,39 @@ messagesRouter.post('/threads', async (req: AuthRequest, res) => {
   let thread = existing.find((t) => t.participants.length === 2)
   if (!thread) {
     thread = await prisma.thread.create({
-      data: {
-        participants: {
-          create: [{ userId }, { userId: toUserId }],
-        },
-      },
+      data: { participants: { create: [{ userId }, { userId: toUserId }] } },
       include: { participants: true },
     })
   }
-  const msg = await prisma.message.create({
-    data: { threadId: thread.id, senderId: userId, content },
-  })
-  await prisma.thread.update({ where: { id: thread.id }, data: { updatedAt: new Date() } })
-  await prisma.threadParticipant.updateMany({
-    where: { threadId: thread.id, userId: toUserId },
-    data: { unread: { increment: 1 } },
-  })
-  await prisma.user.update({ where: { id: userId }, data: { lastSeen: new Date() } })
-  res.status(201).json({ threadId: thread.id, message: msg })
+  const message = await createMessage(thread.id, userId, { content })
+  res.status(201).json({ threadId: thread.id, message })
 })
 
 messagesRouter.post('/groups', async (req: AuthRequest, res) => {
   const userId = req.userId!
-  const { name, memberIds, content } = req.body as { name: string; memberIds: string[]; content?: string }
-  const ids = [...new Set([userId, ...memberIds])]
+  const parsed = newGroupSchema.safeParse(req.body)
+  if (!parsed.success) return badRequest(res, parsed.error)
+  const { name, memberIds, content } = parsed.data
+  const found = await prisma.user.findMany({ where: { id: { in: memberIds } }, select: { id: true } })
+  const ids = [...new Set([userId, ...found.map((u) => u.id)])]
   const thread = await prisma.thread.create({
     data: {
       isGroup: true,
-      name: name.trim(),
+      name,
       avatarUrl: `https://picsum.photos/seed/g${Date.now()}/96/96`,
       participants: {
         create: ids.map((id) => ({ userId: id, isAdmin: id === userId })),
       },
     },
   })
-  if (content?.trim()) {
-    await prisma.message.create({
-      data: { threadId: thread.id, senderId: userId, content: content.trim() },
-    })
-  }
+  if (content) await createMessage(thread.id, userId, { content })
   res.status(201).json({ threadId: thread.id })
 })
 
 messagesRouter.post('/threads/:id', async (req: AuthRequest, res) => {
-  const userId = req.userId!
-  const threadId = param(req, 'id')
-  const { content, type, mediaUrl } = req.body as { content: string; type?: string; mediaUrl?: string }
-  const msg = await prisma.message.create({
-    data: {
-      threadId,
-      senderId: userId,
-      content,
-      type: (type as 'TEXT' | 'IMAGE' | 'DOCUMENT') ?? 'TEXT',
-      mediaUrl: mediaUrl ?? null,
-    },
-    include: { sender: true },
-  })
-  await prisma.thread.update({ where: { id: threadId }, data: { updatedAt: new Date() } })
-  await prisma.user.update({ where: { id: userId }, data: { lastSeen: new Date() } })
-  const others = await prisma.threadParticipant.findMany({
-    where: { threadId, userId: { not: userId } },
-  })
-  for (const o of others) {
-    await prisma.threadParticipant.update({
-      where: { id: o.id },
-      data: { unread: { increment: 1 } },
-    })
-  }
-  res.status(201).json({
-    id: msg.id,
-    content: msg.content,
-    type: msg.type,
-    mediaUrl: msg.mediaUrl,
-    read: msg.read,
-    delivered: msg.delivered,
-    createdAt: msg.createdAt,
-    senderId: msg.senderId,
-    sender: toPublicUser(msg.sender),
-  })
+  const parsed = sendSchema.safeParse(req.body)
+  if (!parsed.success) return badRequest(res, parsed.error)
+  const message = await createMessage(param(req, 'id'), req.userId!, parsed.data)
+  if (!message) return res.status(404).json({ message: 'Not found' })
+  res.status(201).json(message)
 })

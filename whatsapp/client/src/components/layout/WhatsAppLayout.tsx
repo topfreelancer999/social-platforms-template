@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { MessageCircle, Circle, Radio, Users, Settings, Search } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useRealtime } from '@/features/chats/useRealtime'
 
 const sideNav = [
   { to: '/', icon: MessageCircle, label: 'Chats' },
@@ -14,6 +15,7 @@ const sideNav = [
 export function WhatsAppLayout() {
   const user = useAuthStore((s) => s.user)
   const loc = useLocation()
+  useRealtime()
   const inChat = loc.pathname.startsWith('/chat/')
 
   return (

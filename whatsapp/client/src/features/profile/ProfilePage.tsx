@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { rel } from '@/lib/format'
+import { lastSeenLabel } from '@/lib/format'
 
 export function ProfilePage() {
   const { username } = useParams()
@@ -11,7 +11,7 @@ export function ProfilePage() {
     queryKey: ['profile', username],
     queryFn: () =>
       api<{
-        user: { id: string; username: string; displayName?: string; firstName: string; lastName: string; about: string; phone: string; avatarUrl: string; bio: string; lastSeen: string }
+        user: { id: string; username: string; displayName?: string; firstName: string; lastName: string; about: string; phone: string; avatarUrl: string; bio: string; lastSeen: string | null; online: boolean }
         isSelf: boolean
       }>(`/users/${username}`, { headers: authHeaders(token!) }),
     enabled: !!username && !!token,
@@ -31,7 +31,11 @@ export function ProfilePage() {
         <p className="text-xs text-wa-teal uppercase mb-1">About</p>
         <p className="text-sm">{user.about || user.bio}</p>
       </div>
-      <p className="text-xs text-wa-muted text-center mb-4">Last seen {rel(user.lastSeen)}</p>
+      {!isSelf && (user.online || user.lastSeen) && (
+        <p className="text-xs text-wa-muted text-center mb-4">
+          {user.online ? 'online' : lastSeenLabel(user.lastSeen!)}
+        </p>
+      )}
       {isSelf ? (
         <Link to={`/profile/${username}/edit`} className="block text-center text-wa-teal font-medium">
           Edit profile

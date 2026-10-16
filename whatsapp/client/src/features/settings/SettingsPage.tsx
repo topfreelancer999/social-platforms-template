@@ -10,6 +10,19 @@ const sections = [
   { id: 'notifications', label: 'Notifications' },
 ]
 
+const privacyToggles = [
+  {
+    key: 'lastSeenVisible',
+    label: 'Last seen & online',
+    hint: "If you don't share your last seen and online, you won't be able to see other people's.",
+  },
+  {
+    key: 'readReceipts',
+    label: 'Read receipts',
+    hint: "If turned off, you won't send or receive read receipts. Read receipts are always sent for group chats.",
+  },
+] as const
+
 export function SettingsPage() {
   const { section = 'account' } = useParams()
   const { accessToken, logout } = useAuthStore()
@@ -18,9 +31,17 @@ export function SettingsPage() {
     queryKey: ['settings'],
     queryFn: () => api<{ settings: Record<string, unknown>; email: string }>('/settings', { headers: authHeaders(accessToken) }),
   })
+  type SettingsData = { settings: Record<string, unknown>; email: string }
   const save = useMutation({
     mutationFn: (body: object) => api('/settings', { method: 'PATCH', headers: authHeaders(accessToken), body: JSON.stringify(body) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
+    // Flip toggles immediately; roll back if the server rejects the change.
+    onMutate: (body) => {
+      const previous = qc.getQueryData<SettingsData>(['settings'])
+      if (previous) qc.setQueryData<SettingsData>(['settings'], { ...previous, settings: { ...previous.settings, ...body } })
+      return { previous }
+    },
+    onError: (_e, _body, ctx) => ctx?.previous && qc.setQueryData(['settings'], ctx.previous),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['settings'] }),
   })
   const s = data?.settings ?? {}
   return (
@@ -49,6 +70,20 @@ export function SettingsPage() {
                 <option value="friends">Friends</option>
               </select>
             </label>
+            {data && privacyToggles.map(({ key, label, hint }) => (
+              <label key={key} className="flex justify-between items-start gap-4 py-3 text-sm border-t border-wa-border/50">
+                <span>
+                  <span className="block">{label}</span>
+                  <span className="block text-xs text-wa-muted mt-0.5">{hint}</span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="mt-1 accent-wa-teal"
+                  checked={s[key] !== false}
+                  onChange={(e) => save.mutate({ [key]: e.target.checked })}
+                />
+              </label>
+            ))}
           </>
         )}
         {section === 'notifications' && (

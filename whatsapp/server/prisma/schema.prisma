@@ -54,6 +54,7 @@ model User {
   actorNotifications  Notification[]      @relation("NotificationActor")
   messages            Message[]
   threadParticipants  ThreadParticipant[]
+  messageReceipts     MessageReceipt[]
   reviews             Review[]
   feedbacks           Feedback[]
   reports             Report[]
@@ -101,11 +102,24 @@ model Message {
   content   String
   type      MessageType @default(TEXT)
   mediaUrl  String?
-  read      Boolean     @default(false)
-  delivered Boolean     @default(true)
   createdAt DateTime    @default(now())
   thread    Thread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
   sender    User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  receipts  MessageReceipt[]
+}
+
+/// One row per recipient: drives the sent / delivered / read ticks and Message info.
+model MessageReceipt {
+  id          String    @id @default(cuid())
+  messageId   String
+  userId      String
+  deliveredAt DateTime?
+  readAt      DateTime?
+  message     Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId, deliveredAt])
 }
 
 model Status {
