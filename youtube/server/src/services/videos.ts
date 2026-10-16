@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js'
 import { toPublicUser } from '../lib/user.js'
+import { watchedFraction } from './player.js'
 
 export async function enrichVideo(videoId: string, viewerId: string) {
   const video = await prisma.video.findUnique({
@@ -7,6 +8,7 @@ export async function enrichVideo(videoId: string, viewerId: string) {
     include: {
       author: true,
       likes: true,
+      watchProgress: { where: { userId: viewerId } },
       _count: { select: { comments: true } },
     },
   })
@@ -32,5 +34,6 @@ export async function enrichVideo(videoId: string, viewerId: string) {
     likeCount: video.likes.length,
     commentCount: video._count.comments,
     liked: video.likes.some((l) => l.userId === viewerId),
+    progress: watchedFraction(video.watchProgress[0]),
   }
 }
