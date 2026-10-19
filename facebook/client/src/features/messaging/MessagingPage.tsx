@@ -6,6 +6,8 @@ import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { rel } from '@/lib/format'
+import { StoryReplyPreview } from '@/features/stories/StoryReplyPreview'
+import type { StoryPreview } from '@/features/stories/stories'
 
 export function MessagingPage() {
   const { threadId } = useParams()
@@ -18,7 +20,7 @@ export function MessagingPage() {
   })
   const { data: thread } = useQuery({
     queryKey: ['thread', threadId],
-    queryFn: () => api<{ participant: { firstName: string }; messages: { id: string; content: string; senderId: string; createdAt: string; sender: { firstName: string } }[] }>(`/messages/threads/${threadId}`, { headers: authHeaders(accessToken) }),
+    queryFn: () => api<{ participant: { firstName: string }; messages: { id: string; content: string; senderId: string; createdAt: string; sender: { firstName: string }; story: StoryPreview | null }[] }>(`/messages/threads/${threadId}`, { headers: authHeaders(accessToken) }),
     enabled: !!threadId,
   })
   const send = useMutation({
@@ -53,9 +55,12 @@ export function MessagingPage() {
             <p className="p-3 font-semibold border-b">{thread.participant.firstName}</p>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {thread.messages.map((m) => (
-                <div key={m.id} className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${m.senderId === user?.id ? 'ml-auto bg-fb-primary text-white' : 'bg-[#e4e6eb]'}`}>
-                  {m.content}
-                  <p className="text-[10px] opacity-70 mt-1">{rel(m.createdAt)}</p>
+                <div key={m.id} className={`max-w-[70%] w-fit ${m.senderId === user?.id ? 'ml-auto' : ''}`}>
+                  {m.story && <StoryReplyPreview story={m.story} mine={m.senderId === user?.id} otherName={thread.participant.firstName} />}
+                  <div className={`rounded-2xl px-3 py-2 text-sm ${m.senderId === user?.id ? 'bg-fb-primary text-white' : 'bg-[#e4e6eb]'}`}>
+                    {m.content}
+                    <p className="text-[10px] opacity-70 mt-1">{rel(m.createdAt)}</p>
+                  </div>
                 </div>
               ))}
             </div>

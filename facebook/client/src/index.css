@@ -8,6 +8,13 @@
   --color-fb-border: #dddfe2;
   --color-fb-text: #050505;
   --color-fb-muted: #65676b;
+
+  /* Story segment fill; duration is overridden inline per story. */
+  --animate-story-progress: story-progress 5s linear forwards;
+  @keyframes story-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
 }
 
 body {

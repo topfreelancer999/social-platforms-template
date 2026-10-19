@@ -27,6 +27,16 @@ enum ReactionType {
   ANGRY
 }
 
+enum StoryType {
+  PHOTO
+  TEXT
+}
+
+enum StoryAudience {
+  FRIENDS
+  PUBLIC
+}
+
 enum GroupPrivacy {
   PUBLIC
   PRIVATE
@@ -74,6 +84,8 @@ model User {
   reviews           Review[]
   feedbacks         Feedback[]
   reports           Report[]
+  stories           Story[]
+  storyViews        StoryView[]
 }
 
 model UserSettings {
@@ -230,10 +242,45 @@ model Message {
   threadId  String
   senderId  String
   content   String
+  /// Set when the message is a reply to a story; cleared if the story is deleted.
+  storyId   String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
   sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  story     Story?   @relation(fields: [storyId], references: [id], onDelete: SetNull)
+}
+
+/// 24-hour story. Expired rows stay in the table but are filtered out by `expiresAt`.
+model Story {
+  id         String        @id @default(cuid())
+  authorId   String
+  type       StoryType
+  mediaUrl   String?
+  text       String?
+  /// Gradient key for text stories (see client STORY_BACKGROUNDS).
+  background String?
+  audience   StoryAudience @default(FRIENDS)
+  createdAt  DateTime      @default(now())
+  expiresAt  DateTime
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  views      StoryView[]
+  replies    Message[]
+
+  @@index([authorId, expiresAt])
+}
+
+/// One row per viewer; the viewer's quick reaction lives on the same row.
+model StoryView {
+  id        String        @id @default(cuid())
+  storyId   String
+  viewerId  String
+  viewedAt  DateTime      @default(now())
+  reaction  ReactionType?
+  story     Story         @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewer    User          @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, viewerId])
 }
 
 model Notification {

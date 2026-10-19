@@ -17,6 +17,8 @@ import { PageDetailPage } from '@/features/pages/PageDetailPage'
 import { FeedbackPage } from '@/features/feedback/FeedbackPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { EventsPage } from '@/features/events/EventsPage'
+import { CreateStoryPage } from '@/features/stories/CreateStoryPage'
+import { StoryViewerPage } from '@/features/stories/StoryViewerPage'
 
 function Private({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
@@ -50,7 +52,10 @@ export function AppRouter() {
         <Route path="feedback" element={<FeedbackPage />} />
         <Route path="settings/:section?" element={<SettingsPage />} />
         <Route path="events" element={<EventsPage />} />
+        <Route path="stories/create" element={<CreateStoryPage />} />
       </Route>
+      {/* Full-screen, outside the app chrome */}
+      <Route path="/stories/:userId" element={<Private><StoryViewerPage /></Private>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

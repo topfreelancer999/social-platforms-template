@@ -4,6 +4,8 @@ import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { param } from '../lib/params.js'
+import { findOrCreateThread, sendDirectMessage } from '../services/messages.js'
+import { toStoryPreview } from '../services/stories.js'
 
 export const messagesRouter = Router()
 messagesRouter.use(requireAuth)
@@ -43,7 +45,7 @@ messagesRouter.get('/threads/:id', async (req: AuthRequest, res) => {
     where: { id: param(req, 'id') },
     include: {
       participants: { include: { user: true } },
-      messages: { orderBy: { createdAt: 'asc' }, include: { sender: true } },
+      messages: { orderBy: { createdAt: 'asc' }, include: { sender: true, story: true } },
     },
   })
   if (!thread) return res.status(404).json({ message: 'Not found' })
@@ -59,39 +61,19 @@ messagesRouter.get('/threads/:id', async (req: AuthRequest, res) => {
   res.json({
     thread: { id: thread.id, updatedAt: thread.updatedAt },
     participant: toPublicUser(other.user),
-    messages: thread.messages.map((m) => ({ ...m, sender: toPublicUser(m.sender) })),
+    messages: thread.messages.map((m) => ({
+      ...m,
+      sender: toPublicUser(m.sender),
+      story: m.story ? toStoryPreview(m.story) : null,
+    })),
   })
 })
 
 messagesRouter.post('/threads', async (req: AuthRequest, res) => {
   const userId = req.userId!
   const { toUserId, content } = req.body as { toUserId: string; content: string }
-  let thread = await prisma.thread.findFirst({
-    where: {
-      participants: { every: { userId: { in: [userId, toUserId] } } },
-      AND: [
-        { participants: { some: { userId } } },
-        { participants: { some: { userId: toUserId } } },
-      ],
-    },
-  })
-  if (!thread) {
-    thread = await prisma.thread.create({
-      data: {
-        participants: {
-          create: [{ userId }, { userId: toUserId, unread: 0 }],
-        },
-      },
-    })
-  }
-  const msg = await prisma.message.create({
-    data: { threadId: thread.id, senderId: userId, content },
-  })
-  await prisma.thread.update({ where: { id: thread.id }, data: { updatedAt: new Date() } })
-  await prisma.threadParticipant.update({
-    where: { threadId_userId: { threadId: thread.id, userId: toUserId } },
-    data: { unread: { increment: 1 } },
-  })
+  const thread = await findOrCreateThread(userId, toUserId)
+  const msg = await sendDirectMessage(thread.id, userId, toUserId, content)
   res.status(201).json({ threadId: thread.id, message: msg })
 })
 

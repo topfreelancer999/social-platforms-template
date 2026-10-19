@@ -4,6 +4,7 @@ import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/components/ui/Card'
+import { StoriesTray } from '@/features/stories/StoriesTray'
 import { PostCard } from './PostCard'
 
 export function FeedPage() {
@@ -30,6 +31,7 @@ export function FeedPage() {
           <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${filter === f ? 'bg-fb-primary text-white' : 'bg-fb-card'}`}>{f === 'all' ? 'All' : f}</button>
         ))}
       </div>
+      <StoriesTray />
       <Card className="p-3 mb-4 flex gap-3">
         <Avatar src={user?.avatarUrl} size="lg" />
         <button onClick={() => setOpen(true)} className="flex-1 bg-[#f0f2f5] rounded-full px-4 py-3 text-left text-fb-muted text-[17px]">What&apos;s on your mind?</button>
@@ -40,15 +42,6 @@ export function FeedPage() {
           <button onClick={() => createPost.mutate()} className="mt-2 bg-fb-primary text-white px-4 py-2 rounded-lg font-semibold text-sm">Post</button>
         </Card>
       )}
-      {/* Stories placeholder */}
-      <Card className="p-3 mb-4 flex gap-2 overflow-x-auto">
-        {['Your story', 'Sarah', 'Mike', 'Emma'].map((s) => (
-          <div key={s} className="shrink-0 text-center text-xs">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#1877f2] to-[#e41e3f] p-[2px]"><div className="w-full h-full rounded-full bg-white p-[2px]"><Avatar size="lg" /></div></div>
-            <span className="mt-1 block truncate w-14">{s}</span>
-          </div>
-        ))}
-      </Card>
       {posts.map((p) => <PostCard key={(p as { id: string }).id} post={p} />)}
       {hasNextPage && <button onClick={() => fetchNextPage()} className="w-full py-2 text-fb-primary font-semibold">{isFetchingNextPage ? 'Loading...' : 'Load more'}</button>}
     </div>

@@ -2,9 +2,9 @@ import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ProfileStoryAvatar } from '@/features/stories/ProfileStoryAvatar'
 
 export function ProfilePage() {
   const { username } = useParams()
@@ -26,7 +26,7 @@ export function ProfilePage() {
       <Card className="p-0 overflow-hidden mb-4">
         <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${user.coverUrl})` }} />
         <div className="px-4 pb-4 -mt-16">
-          <Avatar src={user.avatarUrl} size="lg" className="border-4 border-white w-40 h-40" />
+          <ProfileStoryAvatar user={user} />
           <h1 className="text-3xl font-bold mt-2">{user.firstName} {user.lastName}</h1>
           <p className="text-fb-muted">{user.bio}</p>
           {isSelf ? <Link to={`/profile/${username}/edit`}><Button className="mt-3">Edit profile</Button></Link> : (

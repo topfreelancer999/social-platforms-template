@@ -76,7 +76,7 @@ npm run dev
 - **Feedback** — Platform feedback form
 - **Settings** — Account, privacy, notifications
 - **Events** — RSVP to events
-- **Stories** — UI placeholder on feed
+- **Stories** — 24h photo/text stories with background gradients and Friends/Public audience; tray on the News Feed (unseen first, blue vs grey rings), full-screen viewer with auto-advancing progress bars, tap/hold/keyboard controls, quick reactions and replies that land in Messenger, author-only viewers list, delete own story, story ring on profiles
 
 ## Project structure
 

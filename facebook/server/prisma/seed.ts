@@ -1,4 +1,4 @@
-import { FriendshipStatus, GroupPrivacy, NotificationType, PostPrivacy, ReactionType } from '@prisma/client'
+import { FriendshipStatus, GroupPrivacy, NotificationType, PostPrivacy, ReactionType, StoryAudience, StoryType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../src/lib/prisma.js'
 
@@ -27,6 +27,8 @@ async function main() {
   await prisma.feedback.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.message.deleteMany()
+  await prisma.storyView.deleteMany()
+  await prisma.story.deleteMany()
   await prisma.threadParticipant.deleteMany()
   await prisma.thread.deleteMany()
   await prisma.review.deleteMany()
@@ -189,6 +191,64 @@ async function main() {
       { userId: alex.id, actorId: mike.id, type: NotificationType.POST_REACTION, title: 'Mike reacted to your post', body: 'Reacted with Like', link: '/' },
     ],
   })
+
+  // Stories: times are relative to now so the 24h window always holds after a reseed.
+  const HOUR = 3600000
+  const story = (
+    authorId: string,
+    hoursAgo: number,
+    data: { type: StoryType; mediaUrl?: string; text?: string; background?: string; audience?: StoryAudience },
+  ) =>
+    prisma.story.create({
+      data: {
+        authorId,
+        ...data,
+        createdAt: new Date(Date.now() - hoursAgo * HOUR),
+        expiresAt: new Date(Date.now() - hoursAgo * HOUR + 24 * HOUR),
+      },
+    })
+  const view = (storyId: string, viewerId: string, hoursAgo: number, reaction?: ReactionType) =>
+    prisma.storyView.create({
+      data: { storyId, viewerId, reaction, viewedAt: new Date(Date.now() - hoursAgo * HOUR) },
+    })
+
+  const alexPhoto = await story(alex.id, 5, { type: StoryType.PHOTO, mediaUrl: 'https://picsum.photos/seed/fb-story-alex1/720/1280', text: 'Sunrise run before work 🌅' })
+  const alexText = await story(alex.id, 2, { type: StoryType.TEXT, text: 'Coffee number three. Send help ☕☕☕', background: 'sunset' })
+  await view(alexPhoto.id, sarah.id, 4.5, ReactionType.LOVE)
+  await view(alexPhoto.id, mike.id, 4, ReactionType.LIKE)
+  await view(alexPhoto.id, emma.id, 3)
+  await view(alexPhoto.id, david.id, 2.5, ReactionType.HAHA)
+  await view(alexText.id, sarah.id, 1.5, ReactionType.WOW)
+  await view(alexText.id, david.id, 1)
+
+  // Mike replied to Alex's photo story; the reply lives in Messenger.
+  const storyThread = await prisma.thread.create({
+    data: { participants: { create: [{ userId: alex.id, unread: 1 }, { userId: mike.id, unread: 0 }] } },
+  })
+  await prisma.message.create({
+    data: { threadId: storyThread.id, senderId: mike.id, storyId: alexPhoto.id, content: 'Where is this?? Looks amazing', createdAt: new Date(Date.now() - 3.9 * HOUR) },
+  })
+
+  const sarahPhoto = await story(sarah.id, 8, { type: StoryType.PHOTO, mediaUrl: 'https://picsum.photos/seed/fb-story-sarah1/720/1280', text: 'Golden hour shoot 📸' })
+  await story(sarah.id, 3, { type: StoryType.TEXT, text: 'New portfolio drops Friday!', background: 'berry' })
+  await view(sarahPhoto.id, alex.id, 6, ReactionType.LOVE)
+  await view(sarahPhoto.id, emma.id, 5)
+
+  await story(mike.id, 1, { type: StoryType.PHOTO, mediaUrl: 'https://picsum.photos/seed/fb-story-mike1/720/1280', text: 'Game night 🏀' })
+
+  // Emma's stories are already watched by Alex, so her ring is grey.
+  const emmaOne = await story(emma.id, 10, { type: StoryType.PHOTO, mediaUrl: 'https://picsum.photos/seed/fb-story-emma1/720/1280' })
+  const emmaTwo = await story(emma.id, 6, { type: StoryType.TEXT, text: 'Pancake Sunday with the kids 🥞', background: 'forest' })
+  await view(emmaOne.id, alex.id, 9)
+  await view(emmaTwo.id, alex.id, 5, ReactionType.HAHA)
+
+  await story(david.id, 20, { type: StoryType.TEXT, text: 'Shipped it. Time to sleep.', background: 'night' })
+  // Expired 2h ago: must never show up anywhere.
+  await story(david.id, 26, { type: StoryType.PHOTO, mediaUrl: 'https://picsum.photos/seed/fb-story-expired/720/1280', text: 'This story has expired' })
+
+  // Non-friends: Lisa's public story shows on her profile, Kevin's friends-only one stays hidden.
+  await story(createdUsers[5].id, 4, { type: StoryType.PHOTO, mediaUrl: 'https://picsum.photos/seed/fb-story-lisa1/720/1280', text: 'Ramen tasting menu 🍜', audience: StoryAudience.PUBLIC })
+  await story(createdUsers[14].id, 7, { type: StoryType.TEXT, text: 'Friends only: big news soon', background: 'ocean' })
 
   await prisma.event.createMany({
     data: [
