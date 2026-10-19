@@ -13,10 +13,13 @@ import { feedbackRouter } from './feedback.js'
 import { settingsRouter } from './settings.js'
 import { reportsRouter } from './reports.js'
 import { eventsRouter } from './events.js'
+import { rolesRouter } from './roles.js'
 
 export const apiRouter = Router()
 
 apiRouter.use('/auth', authRouter)
+// Role routes are nested under a server; mounted first so /servers/:id stays untouched.
+apiRouter.use('/servers/:serverId', rolesRouter)
 apiRouter.use('/servers', serversRouter)
 apiRouter.use('/channels', channelsRouter)
 apiRouter.use('/posts', postsRouter)

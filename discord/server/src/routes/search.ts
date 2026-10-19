@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
+import { viewableChannelIds } from '../lib/access.js'
 
 export const searchRouter = Router()
 searchRouter.use(requireAuth)
@@ -13,6 +14,9 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
   if (!q) return res.json({})
   const contains = (s: string) => s.toLowerCase().includes(q)
   const result: Record<string, unknown> = {}
+  // Channels and messages respect VIEW_CHANNEL, so private channels never leak via search.
+  const needsChannels = ['all', 'channels', 'messages'].includes(type)
+  const viewable = needsChannels ? await viewableChannelIds(req.userId!) : new Set<string>()
 
   if (type === 'all' || type === 'servers') {
     const servers = await prisma.server.findMany({ take: 30, include: { _count: { select: { members: true } } } })
@@ -21,7 +25,7 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
       .map((s) => ({ id: s.id, name: s.name, description: s.description, iconUrl: s.iconUrl, memberCount: s._count.members }))
   }
   if (type === 'all' || type === 'channels') {
-    const channels = await prisma.channel.findMany({ take: 50, include: { server: true } })
+    const channels = await prisma.channel.findMany({ where: { id: { in: [...viewable] } }, take: 50, include: { server: true } })
     result.channels = channels
       .filter((c) => contains(c.name) || contains(c.topic))
       .map((c) => ({ id: c.id, name: c.name, serverId: c.serverId, serverName: c.server.name }))
@@ -38,7 +42,7 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
     )
   }
   if (type === 'all' || type === 'messages') {
-    const msgs = await prisma.channelMessage.findMany({ take: 40, include: { author: true, channel: { include: { server: true } } } })
+    const msgs = await prisma.channelMessage.findMany({ where: { channelId: { in: [...viewable] } }, take: 40, include: { author: true, channel: { include: { server: true } } } })
     result.messages = msgs
       .filter((m) => contains(m.content))
       .map((m) => ({

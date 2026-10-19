@@ -1,6 +1,7 @@
 import { ChannelType, GroupPrivacy, NotificationType, PostPrivacy, ServerRole } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../src/lib/prisma.js'
+import { DEFAULT_EVERYONE_PERMISSIONS, Permissions as P } from '../src/lib/permissions.js'
 
 const pw = await bcrypt.hash('password', 10)
 
@@ -9,6 +10,9 @@ async function main() {
   await prisma.feedback.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.channelMessage.deleteMany()
+  await prisma.channelPermissionOverwrite.deleteMany()
+  await prisma.memberRole.deleteMany()
+  await prisma.role.deleteMany()
   await prisma.channel.deleteMany()
   await prisma.serverMember.deleteMany()
   await prisma.server.deleteMany()
@@ -72,6 +76,14 @@ async function main() {
             ...created.filter((u) => u.id !== s.owner.id).map((u) => ({ userId: u.id, role: ServerRole.MEMBER })),
           ],
         },
+        roles: {
+          create: {
+            name: '@everyone',
+            position: 0,
+            isEveryone: true,
+            permissions: DEFAULT_EVERYONE_PERMISSIONS.toString(),
+          },
+        },
         channels: {
           create: [
             { name: 'general', topic: 'General chat', type: ChannelType.TEXT, position: 0 },
@@ -81,9 +93,87 @@ async function main() {
           ],
         },
       },
-      include: { channels: true },
+      include: { channels: true, roles: true, members: true },
+    })
+    // #announcements is read-only for @everyone on every server.
+    await prisma.channelPermissionOverwrite.create({
+      data: {
+        channelId: server.channels.find((c) => c.name === 'announcements')!.id,
+        roleId: server.roles[0].id,
+        deny: P.SEND_MESSAGES.toString(),
+      },
     })
     serverRecords.push(server)
+  }
+
+  // Dev Hub gets a full role hierarchy. Alex (demo) owns it; Sarah moderates with
+  // Manage Roles but sits below Admin; Mike is a plain Member with limited access.
+  const devHub = serverRecords[0]
+  const memberOf = (userId: string) => devHub.members.find((m) => m.userId === userId)!.id
+  const everyone = devHub.roles[0]
+  const roleDefs = [
+    { name: 'Admin', color: 0xe74c3c, hoist: true, mentionable: true, permissions: P.ADMINISTRATOR, users: [david] },
+    {
+      name: 'Moderator',
+      color: 0x3498db,
+      hoist: true,
+      mentionable: true,
+      permissions:
+        P.KICK_MEMBERS | P.MANAGE_MESSAGES | P.MANAGE_ROLES | P.MANAGE_NICKNAMES | P.MENTION_EVERYONE |
+        P.VIEW_AUDIT_LOG | P.MUTE_MEMBERS,
+      users: [sarah],
+    },
+    { name: 'Contributor', color: 0x9b59b6, hoist: false, mentionable: false, permissions: P.EMBED_LINKS | P.ATTACH_FILES, users: [emma] },
+    { name: 'Member', color: 0x2ecc71, hoist: true, mentionable: false, permissions: 0n, users: [sarah, mike, emma] },
+  ]
+  const devRoles: Record<string, string> = {}
+  for (let i = 0; i < roleDefs.length; i++) {
+    const def = roleDefs[i]
+    const role = await prisma.role.create({
+      data: {
+        serverId: devHub.id,
+        name: def.name,
+        color: def.color,
+        hoist: def.hoist,
+        mentionable: def.mentionable,
+        permissions: def.permissions.toString(),
+        position: roleDefs.length - i,
+        members: { create: def.users.map((u) => ({ memberId: memberOf(u.id) })) },
+      },
+    })
+    devRoles[def.name] = role.id
+  }
+
+  const devAnnouncements = devHub.channels.find((c) => c.name === 'announcements')!
+  const modChat = await prisma.channel.create({
+    data: {
+      serverId: devHub.id,
+      name: 'mod-chat',
+      topic: 'Private channel for the moderation team',
+      position: 3,
+      overwrites: {
+        create: [
+          { roleId: everyone.id, deny: P.VIEW_CHANNEL.toString() },
+          { roleId: devRoles.Moderator, allow: P.VIEW_CHANNEL.toString() },
+        ],
+      },
+    },
+  })
+  await prisma.channel.updateMany({ where: { serverId: devHub.id, name: 'voice-lobby' }, data: { position: 4 } })
+  // Moderators may post announcements even though @everyone cannot.
+  await prisma.channelPermissionOverwrite.create({
+    data: { channelId: devAnnouncements.id, roleId: devRoles.Moderator, allow: P.SEND_MESSAGES.toString() },
+  })
+  const devMessages = [
+    { channelId: devAnnouncements.id, authorId: alex.id, content: 'Welcome to Dev Hub! This channel is read-only — only staff can post here.' },
+    { channelId: devAnnouncements.id, authorId: sarah.id, content: 'Reminder: be kind, ship often, and keep #general on topic.' },
+    { channelId: modChat.id, authorId: sarah.id, content: 'Mod sync: anyone seen spam in #random today?' },
+    { channelId: modChat.id, authorId: david.id, content: 'All quiet. I tightened the Member role permissions.' },
+  ]
+  for (let i = 0; i < devMessages.length; i++) {
+    await prisma.channelMessage.create({
+      data: { ...devMessages[i], createdAt: new Date(Date.now() - (devMessages.length - i) * 900000) },
+    })
   }
 
   const welcome = [
@@ -179,7 +269,7 @@ async function main() {
     },
   })
 
-  console.log('Seed complete. Demo: demo@discord.local / password')
+  console.log('Seed complete. Demo: demo@discord.local / password (also sarah.k@email.com, mike.j@email.com)')
 }
 
 main()

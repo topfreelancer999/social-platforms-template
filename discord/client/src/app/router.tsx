@@ -19,6 +19,8 @@ import { FeedbackPage } from '@/features/feedback/FeedbackPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { EventsPage } from '@/features/events/EventsPage'
 import { SearchPage } from '@/features/search/SearchPage'
+import { ServerSettingsPage } from '@/features/server-settings/ServerSettingsPage'
+import { ChannelSettingsPage } from '@/features/channel-settings/ChannelSettingsPage'
 
 function Private({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
@@ -47,6 +49,12 @@ export function AppRouter() {
         <Route path="/login" element={<Public><LoginPage /></Public>} />
         <Route path="/register" element={<Public><RegisterPage /></Public>} />
       </Route>
+      {/* Settings are full-screen overlays, like Discord's, so they sit outside the app chrome. */}
+      <Route path="servers/:serverId/settings/:section?" element={<Private><ServerSettingsPage /></Private>} />
+      <Route
+        path="servers/:serverId/channels/:channelId/settings/:section?"
+        element={<Private><ChannelSettingsPage /></Private>}
+      />
       <Route element={<DiscordLayout />}>
         <Route index element={<Private><HomeRedirect /></Private>} />
         <Route path="servers/:serverId" element={<Private><AppPage /></Private>} />

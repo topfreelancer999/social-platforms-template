@@ -67,7 +67,7 @@ model User {
   createdAt    DateTime @default(now())
 
   settings           UserSettings?
-  ownedServers       Server[]           @relation("ServerOwner")
+  ownedServers       Server[]                     @relation("ServerOwner")
   serverMembers      ServerMember[]
   channelMessages    ChannelMessage[]
   posts              Post[]
@@ -75,14 +75,15 @@ model User {
   reactions          Reaction[]
   shares             Share[]
   groupMembers       GroupMember[]
-  createdGroups      Group[]            @relation("GroupCreator")
-  notifications      Notification[]     @relation("NotificationUser")
-  actorNotifications Notification[]     @relation("NotificationActor")
+  createdGroups      Group[]                      @relation("GroupCreator")
+  notifications      Notification[]               @relation("NotificationUser")
+  actorNotifications Notification[]               @relation("NotificationActor")
   messages           Message[]
   threadParticipants ThreadParticipant[]
   reviews            Review[]
   feedbacks          Feedback[]
   reports            Report[]
+  channelOverwrites  ChannelPermissionOverwrite[]
 }
 
 model UserSettings {
@@ -106,30 +107,80 @@ model Server {
   owner       User           @relation("ServerOwner", fields: [ownerId], references: [id])
   members     ServerMember[]
   channels    Channel[]
+  roles       Role[]
+}
+
+/// Discord-style role. `permissions` is a bitfield serialised as a decimal
+/// string (like Discord's API). Higher `position` = higher in the hierarchy;
+/// the implicit @everyone role (`isEveryone`) always sits at position 0.
+model Role {
+  id          String                       @id @default(cuid())
+  serverId    String
+  name        String
+  color       Int                          @default(0)
+  position    Int                          @default(0)
+  permissions String                       @default("0")
+  hoist       Boolean                      @default(false)
+  mentionable Boolean                      @default(false)
+  isEveryone  Boolean                      @default(false)
+  createdAt   DateTime                     @default(now())
+  server      Server                       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  members     MemberRole[]
+  overwrites  ChannelPermissionOverwrite[]
+
+  @@index([serverId, position])
+}
+
+model MemberRole {
+  id       String       @id @default(cuid())
+  memberId String
+  roleId   String
+  member   ServerMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role     Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, roleId])
+}
+
+/// Per-channel allow/deny bitfields targeting either a role or a member (user).
+model ChannelPermissionOverwrite {
+  id        String  @id @default(cuid())
+  channelId String
+  roleId    String?
+  userId    String?
+  allow     String  @default("0")
+  deny      String  @default("0")
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  role      Role?   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, roleId])
+  @@unique([channelId, userId])
 }
 
 model ServerMember {
-  id       String     @id @default(cuid())
+  id       String       @id @default(cuid())
   serverId String
   userId   String
-  role     ServerRole @default(MEMBER)
-  joinedAt DateTime   @default(now())
-  server   Server     @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     ServerRole   @default(MEMBER)
+  joinedAt DateTime     @default(now())
+  server   Server       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles    MemberRole[]
 
   @@unique([serverId, userId])
 }
 
 model Channel {
-  id        String      @id @default(cuid())
-  serverId  String
-  name      String
-  topic     String      @default("")
-  type      ChannelType @default(TEXT)
-  position  Int         @default(0)
-  createdAt DateTime    @default(now())
-  server    Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  messages  ChannelMessage[]
+  id         String                       @id @default(cuid())
+  serverId   String
+  name       String
+  topic      String                       @default("")
+  type       ChannelType                  @default(TEXT)
+  position   Int                          @default(0)
+  createdAt  DateTime                     @default(now())
+  server     Server                       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages   ChannelMessage[]
+  overwrites ChannelPermissionOverwrite[]
 }
 
 model ChannelMessage {
@@ -191,14 +242,14 @@ model Share {
 }
 
 model Group {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String
   imageUrl    String
-  privacy     GroupPrivacy @default(PUBLIC)
+  privacy     GroupPrivacy  @default(PUBLIC)
   creatorId   String
-  createdAt   DateTime     @default(now())
-  creator     User         @relation("GroupCreator", fields: [creatorId], references: [id])
+  createdAt   DateTime      @default(now())
+  creator     User          @relation("GroupCreator", fields: [creatorId], references: [id])
   members     GroupMember[]
   posts       Post[]
 }

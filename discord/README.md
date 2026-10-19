@@ -19,7 +19,9 @@ npm run dev
 - App: http://localhost:5178  
 - API: http://localhost:3006  
 
-**Demo:** `demo@discord.local` / `password`
+**Demo:** `demo@discord.local` / `password` (owns *Dev Hub*)
+
+Other seeded accounts (same password): `sarah.k@email.com` (Moderator in Dev Hub — Manage Roles, but below Admin) and `mike.j@email.com` (plain Member — can't post in #announcements or see #mod-chat).
 
 ## Discord features
 
@@ -29,6 +31,13 @@ npm run dev
 - Member list with online status
 - Discover & join servers, create server
 - Search (servers, channels, users, messages, groups)
+- Roles & permissions (Discord bitfield model):
+  - Server Settings → Roles: create, rename, recolour (Discord swatches + custom), hoist, mentionable, grouped permission toggles, delete, drag or ↑/↓ to reorder the hierarchy, Manage Members
+  - Server Settings → Members and the member popout: assign/remove roles below your highest role
+  - Channel settings → Permissions: Private Channel toggle and per-role/member overwrites with ✗ / ⁄ / ✓ toggles
+  - Discord's algorithm (owner → Administrator → @everyone + roles → channel overwrites) enforced server-side: hidden channels aren't listed or searchable, read-only channels reject messages (403) and show a disabled composer, role management respects the hierarchy
+  - Member list grouped by hoisted roles; names coloured by highest coloured role in the list and chat
+  - Live refresh via Socket.io (`roles:update`, `channels:update`, `members:update`)
 
 ## Social parity
 
