@@ -16,6 +16,7 @@ export function AppShell() {
           <Link to="/">Explore</Link>
           <Link to="/wishlists">Wishlists</Link>
           <Link to="/trips">Trips</Link>
+          <Link to="/host">Hosting</Link>
           <Link to="/messages">Inbox</Link>
           <Link to={`/profile/${user.username}`}>Profile</Link>
         </div>

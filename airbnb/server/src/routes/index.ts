@@ -16,6 +16,7 @@ import { eventsRouter } from './events.js'
 import { listingsRouter } from './listings.js'
 import { bookingsRouter } from './bookings.js'
 import { wishlistsRouter } from './wishlists.js'
+import { hostingRouter } from './hosting.js'
 
 export const apiRouter = Router()
 
@@ -36,3 +37,4 @@ apiRouter.use('/events', eventsRouter)
 apiRouter.use('/listings', listingsRouter)
 apiRouter.use('/bookings', bookingsRouter)
 apiRouter.use('/wishlists', wishlistsRouter)
+apiRouter.use('/hosting', hostingRouter)

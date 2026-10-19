@@ -22,6 +22,7 @@ import { EventsPage } from '@/features/events/EventsPage'
 import { TripsPage } from '@/features/trips/TripsPage'
 import { HostPage } from '@/features/host/HostPage'
 import { CreateListingPage } from '@/features/host/CreateListingPage'
+import { HostCalendarPage } from '@/features/host/HostCalendarPage'
 import { WishlistsPage } from '@/features/wishlists/WishlistsPage'
 
 function Private({ children }: { children: React.ReactNode }) {
@@ -48,6 +49,7 @@ export function AppRouter() {
         <Route path="feed" element={<Private><FeedPage /></Private>} />
         <Route path="trips" element={<Private><TripsPage /></Private>} />
         <Route path="host" element={<Private><HostPage /></Private>} />
+        <Route path="host/calendar" element={<Private><HostCalendarPage /></Private>} />
         <Route path="host/listing/new" element={<Private><CreateListingPage /></Private>} />
         <Route path="wishlists" element={<Private><WishlistsPage /></Private>} />
         <Route path="profile/:username" element={<ProfilePage />} />

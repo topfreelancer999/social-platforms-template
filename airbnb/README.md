@@ -39,6 +39,7 @@ npm run dev
 ### Airbnb core
 - **Listings** — search, filters, detail, photos, amenities
 - **Bookings** — reserve stays, trips (upcoming/past)
+- **Availability calendar** — two-month date range picker on each listing (booked and blocked nights struck through, check-out allowed on the first taken night, min/max stay); hosts block or reopen nights with a private note, see reservations by guest and set trip length under **Host → Calendar** (`/host/calendar`). Bookings that overlap a reservation or blocked night are rejected server-side (`409`)
 - **Wishlists** — save favorites
 - **Host dashboard** — reservations, create listing
 - **Reviews** — listing + partner page reviews

@@ -130,12 +130,30 @@ model Listing {
   photos      Json        @default("[]")
   amenities   Json        @default("[]")
   houseRules  String      @default("")
+  minNights   Int         @default(1)
+  maxNights   Int         @default(30)
+  /// Bumped by every booking or block write; see calendarTransaction() in services/availability.ts.
+  calendarVersion Int     @default(0)
   createdAt   DateTime    @default(now())
   host        User        @relation(fields: [hostId], references: [id], onDelete: Cascade)
   bookings    Booking[]
+  blockedNights BlockedNight[]
   reviews     Review[]
   posts       Post[]
   wishlistItems WishlistItem[]
+}
+
+/// A night the host closed on their calendar. `date` is the UTC midnight that starts the night,
+/// so a stay [checkIn, checkOut) collides with every blocked date d where checkIn <= d < checkOut.
+model BlockedNight {
+  id        String   @id @default(cuid())
+  listingId String
+  date      DateTime
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date])
 }
 
 model Booking {
@@ -152,6 +170,8 @@ model Booking {
   guest      User          @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Cascade)
   reviews    Review[]
   hostReviews HostReview[]
+
+  @@index([listingId, checkIn])
 }
 
 model Wishlist {

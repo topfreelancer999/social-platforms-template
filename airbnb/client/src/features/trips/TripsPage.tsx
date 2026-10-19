@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { format } from 'date-fns'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
+import { formatDay } from '@/lib/dates'
 
 export function TripsPage() {
   const token = useAuthStore((s) => s.accessToken)
@@ -23,7 +23,7 @@ export function TripsPage() {
         <Link key={b.id} to={`/listing/${b.listing.id}`} className="block border border-ab-border rounded-xl p-4 mb-3 hover:shadow-md">
           <p className="font-semibold">{b.listing.title}</p>
           <p className="text-sm text-ab-muted">{b.listing.city}</p>
-          <p className="text-sm mt-1">{format(new Date(b.checkIn), 'MMM d')} – {format(new Date(b.checkOut), 'MMM d, yyyy')}</p>
+          <p className="text-sm mt-1">{formatDay(b.checkIn)} – {formatDay(b.checkOut, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
           <p className="font-semibold mt-2">${b.totalPrice}</p>
         </Link>
       ))}
@@ -31,7 +31,7 @@ export function TripsPage() {
       {data?.past?.map((b) => (
         <div key={b.id} className="border border-ab-border rounded-xl p-4 mb-3 opacity-80">
           <p className="font-semibold">{b.listing.title}</p>
-          <p className="text-sm text-ab-muted">{format(new Date(b.checkIn), 'MMM yyyy')}</p>
+          <p className="text-sm text-ab-muted">{formatDay(b.checkIn, { month: 'short', year: 'numeric' })}</p>
         </div>
       ))}
     </div>

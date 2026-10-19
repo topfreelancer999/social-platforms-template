@@ -5,6 +5,9 @@ import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { param } from '../lib/params.js'
+import { toDayKey, windowSchema } from '../lib/dates.js'
+import { zodMessage } from '../lib/validate.js'
+import { unavailableNights } from '../services/availability.js'
 
 export const listingsRouter = Router()
 
@@ -80,6 +83,26 @@ listingsRouter.get('/featured', async (_req, res) => {
     include: { host: true, reviews: { select: { rating: true } } },
   })
   res.json(listings.map(enrichListing))
+})
+
+// Public: guests only learn which nights are taken, not whether a booking or a host block took them.
+listingsRouter.get('/:id/availability', async (req, res) => {
+  const range = windowSchema.safeParse(req.query)
+  if (!range.success) return res.status(400).json({ message: zodMessage(range.error) })
+  const listing = await prisma.listing.findUnique({
+    where: { id: param(req, 'id') },
+    select: { id: true, minNights: true, maxNights: true },
+  })
+  if (!listing) return res.status(404).json({ message: 'Listing not found' })
+  const { start, end } = range.data
+  res.json({
+    listingId: listing.id,
+    from: toDayKey(start),
+    to: toDayKey(end),
+    minNights: listing.minNights,
+    maxNights: listing.maxNights,
+    unavailable: await unavailableNights(prisma, listing.id, start, end),
+  })
 })
 
 listingsRouter.get('/:id', async (req, res) => {
