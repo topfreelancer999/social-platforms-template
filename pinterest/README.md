@@ -31,7 +31,8 @@ Optional Redis: `docker compose up -d` (port **6391**).
 | Auth | Register, login, JWT + refresh |
 | Home feed | Pins from people you follow + recommendations |
 | Explore | Discover all pins |
-| Create pin | Title, description, board, preset images |
+| Create pin | Create → Create Pin: drag and drop, browse or paste an image (or save from URL), with upload progress, title, description, link and board |
+| Image upload | JPEG/PNG/WebP/GIF up to 20 MB, verified by magic bytes. Stored on local disk under `server/uploads/pins/<yyyy>/<mm>/` (git-ignored; set `UPLOADS_DIR` / `MAX_UPLOAD_MB`), served at `/uploads` with long cache headers. Width/height are stored so grids reserve space without layout shift; deleting a pin removes its file, and unpublished uploads are swept after 24 h |
 | Boards | Collections per user |
 | Save pin | Save to your board |
 | Comments | On pin detail |

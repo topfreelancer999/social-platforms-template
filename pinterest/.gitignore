@@ -3,3 +3,5 @@ dist
 .env
 *.db
 *.db-journal
+# Uploaded pin images (UPLOADS_DIR)
+server/uploads/

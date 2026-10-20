@@ -7,6 +7,9 @@ export type EnrichedPin = {
   title: string
   description: string
   imageUrl: string
+  imageWidth: number | null
+  imageHeight: number | null
+  dominantColor: string | null
   linkUrl: string | null
   createdAt: Date
   author: ReturnType<typeof toPublicUser>
@@ -30,6 +33,9 @@ export async function enrichPin(pin: Pin & { author: User }, userId?: string): P
     title: pin.title,
     description: pin.description,
     imageUrl: pin.imageUrl,
+    imageWidth: pin.imageWidth,
+    imageHeight: pin.imageHeight,
+    dominantColor: pin.dominantColor,
     linkUrl: pin.linkUrl,
     createdAt: pin.createdAt,
     author: toPublicUser(pin.author),

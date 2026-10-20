@@ -10,6 +10,7 @@ export default defineConfig({
     port: 5184,
     proxy: {
       '/api': { target: 'http://localhost:3012', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:3012', changeOrigin: true },
       '/socket.io': { target: 'http://localhost:3012', ws: true },
     },
   },

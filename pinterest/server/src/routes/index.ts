@@ -14,6 +14,7 @@ import { feedbackRouter } from './feedback.js'
 import { settingsRouter } from './settings.js'
 import { reportsRouter } from './reports.js'
 import { eventsRouter } from './events.js'
+import { uploadsRouter } from './uploads.js'
 
 export const apiRouter = Router()
 
@@ -32,3 +33,4 @@ apiRouter.use('/feedback', feedbackRouter)
 apiRouter.use('/settings', settingsRouter)
 apiRouter.use('/reports', reportsRouter)
 apiRouter.use('/events', eventsRouter)
+apiRouter.use('/uploads', uploadsRouter)

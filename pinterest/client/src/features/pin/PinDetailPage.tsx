@@ -1,20 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useState } from 'react'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/Button'
 import type { PinItem } from '@/components/pins/PinCard'
+import { PinImage } from '@/components/pins/PinImage'
+import { Trash2 } from 'lucide-react'
+import { invalidatePinLists } from './queries'
 
 export function PinDetailPage() {
   const { id } = useParams<{ id: string }>()
   const token = useAuthStore((s) => s.accessToken)
   const user = useAuthStore((s) => s.user)
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const [comment, setComment] = useState('')
   const [boardId, setBoardId] = useState('')
 
-  const { data } = useQuery({
+  const { data, isError, error } = useQuery({
     queryKey: ['pin', id],
     queryFn: () =>
       api<{ pin: PinItem; comments: { id: string; content: string; user: { username: string } }[] }>(
@@ -53,13 +57,32 @@ export function PinDetailPage() {
     },
   })
 
+  const remove = useMutation({
+    mutationFn: () => api(`/pins/${id}`, { method: 'DELETE', headers: authHeaders(token) }),
+    onSuccess: () => {
+      invalidatePinLists(qc)
+      navigate(`/profile/${user?.username ?? ''}`, { replace: true })
+    },
+  })
+
+  if (isError) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-lg font-semibold">{error.message === 'Not found' ? 'This Pin could not be found' : error.message}</p>
+        <Link to="/" className="mt-3 inline-block text-sm font-semibold text-[var(--pin-red)]">
+          Back to home
+        </Link>
+      </div>
+    )
+  }
   if (!data) return <p className="text-[var(--pin-gray)]">Loading…</p>
   const { pin, comments } = data
+  const isOwner = !!user && pin.author.username === user.username
 
   return (
     <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
-      <img src={pin.imageUrl} alt={pin.title} className="w-full rounded-2xl object-cover" />
-      <div>
+      <PinImage pin={pin} loading="eager" className="self-start rounded-2xl" />
+      <div className="min-w-0">
         <h1 className="text-3xl font-bold">{pin.title}</h1>
         <Link to={`/profile/${pin.author.username}`} className="mt-2 inline-block text-sm font-semibold text-[var(--pin-red)]">
           @{pin.author.username}
@@ -86,7 +109,21 @@ export function PinDetailPage() {
           >
             {pin.savedByMe ? 'Saved' : 'Save'}
           </Button>
+          {isOwner && (
+            <Button
+              variant="secondary"
+              className="flex items-center gap-1.5 rounded-full"
+              disabled={remove.isPending}
+              onClick={() => {
+                if (window.confirm('Delete this Pin? This removes it and its image for good.')) remove.mutate()
+              }}
+            >
+              <Trash2 size={16} />
+              {remove.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          )}
         </div>
+        {remove.isError && <p className="mt-2 text-sm text-[var(--pin-red)]">{remove.error.message}</p>}
 
         <section className="mt-8">
           <h2 className="font-bold">Comments</h2>

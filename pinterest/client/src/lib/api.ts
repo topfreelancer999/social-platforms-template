@@ -1,10 +1,13 @@
 export const API = '/api'
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  // FormData bodies need the browser-generated multipart boundary, so they get no JSON default.
+  const json = !(init?.body instanceof FormData)
   const res = await fetch(`${API}${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
+    // Merge last so callers passing auth headers keep the JSON content type.
+    headers: { ...(json ? { 'Content-Type': 'application/json' } : {}), ...init?.headers },
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))

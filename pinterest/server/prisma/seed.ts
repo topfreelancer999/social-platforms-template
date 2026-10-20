@@ -1,6 +1,8 @@
 import { GroupPrivacy, NotificationType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../src/lib/prisma.js'
+import { clearPinFiles, newStorageKey, publicUrl, saveFile } from '../src/lib/storage.js'
+import { SEED_IMAGES, renderPng } from './seedImages.js'
 
 const pw = await bcrypt.hash('password', 10)
 
@@ -11,6 +13,8 @@ async function main() {
   await prisma.pinComment.deleteMany()
   await prisma.pinSave.deleteMany()
   await prisma.pin.deleteMany()
+  await prisma.pinUpload.deleteMany()
+  await clearPinFiles()
   await prisma.board.deleteMany()
   await prisma.userFollow.deleteMany()
   await prisma.channelPost.deleteMany()
@@ -82,20 +86,51 @@ async function main() {
   for (let i = 0; i < 24; i++) {
     const author = created[i % created.length]
     const board = boards.find((b) => b.userId === author.id)!
+    const height = 300 + (i % 4) * 80
     await prisma.pin.create({
       data: {
         authorId: author.id,
         boardId: board.id,
         title: titles[i % titles.length],
         description: 'Save for later · #inspiration',
-        imageUrl: `https://picsum.photos/seed/pin${i}/400/${300 + (i % 4) * 80}`,
+        imageUrl: `https://picsum.photos/seed/pin${i}/400/${height}`,
+        imageWidth: 400,
+        imageHeight: height,
         linkUrl: i % 3 === 0 ? 'https://example.com' : null,
         createdAt: new Date(Date.now() - i * 7200000),
       },
     })
   }
 
-  const pins = await prisma.pin.findMany({ take: 6 })
+  // Pins whose images live in local upload storage (generated, so seeding works offline).
+  const uploaders = [alex, alex, alex, alex, sarah, emma]
+  for (let i = 0; i < SEED_IMAGES.length; i++) {
+    const image = SEED_IMAGES[i]
+    const author = uploaders[i]
+    const { data, dominantColor } = renderPng(image)
+    const storageKey = newStorageKey('png')
+    await saveFile(storageKey, data)
+    const upload = await prisma.pinUpload.create({
+      data: { userId: author.id, storageKey, mimeType: 'image/png', bytes: data.length, width: image.width, height: image.height },
+    })
+    const board = boards.find((b) => b.userId === author.id && b.name === (i % 2 ? 'Home' : 'Ideas'))!
+    await prisma.pin.create({
+      data: {
+        authorId: author.id,
+        boardId: board.id,
+        title: image.title,
+        description: image.description,
+        imageUrl: publicUrl(storageKey),
+        imageWidth: image.width,
+        imageHeight: image.height,
+        dominantColor,
+        uploadId: upload.id,
+        createdAt: new Date(Date.now() - (i + 1) * 600000),
+      },
+    })
+  }
+
+  const pins = await prisma.pin.findMany({ take: 6, where: { uploadId: null } })
   const alexBoard = boards.find((b) => b.userId === alex.id && b.name === 'Ideas')!
   for (const p of pins.slice(0, 3)) {
     await prisma.pinSave.create({ data: { userId: alex.id, pinId: p.id, boardId: alexBoard.id } })
