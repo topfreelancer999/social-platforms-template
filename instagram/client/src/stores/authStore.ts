@@ -12,6 +12,8 @@ export interface User {
   bio: string
   location: string
   status?: string
+  isPrivate?: boolean
+  verified?: boolean
 }
 
 interface AuthState {

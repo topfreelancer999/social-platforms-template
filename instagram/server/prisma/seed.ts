@@ -15,6 +15,7 @@ async function main() {
   await prisma.postLike.deleteMany()
   await prisma.comment.deleteMany()
   await prisma.post.deleteMany()
+  await prisma.followRequest.deleteMany()
   await prisma.follow.deleteMany()
   await prisma.message.deleteMany()
   await prisma.threadParticipant.deleteMany()
@@ -28,7 +29,8 @@ async function main() {
   await prisma.event.deleteMany()
 
   const users = [
-    { email: 'demo@instagram.local', username: 'alex.photo', displayName: 'Alex Morgan', firstName: 'Alex', lastName: 'Morgan', bio: 'Travel · Coffee · Code', verified: true },
+    // Demo is a private account so it has follow requests to review.
+    { email: 'demo@instagram.local', username: 'alex.photo', displayName: 'Alex Morgan', firstName: 'Alex', lastName: 'Morgan', bio: 'Travel · Coffee · Code', verified: true, isPrivate: true },
     { email: 'sarah.k@email.com', username: 'sarah.k', displayName: 'Sarah Kim', firstName: 'Sarah', lastName: 'Kim', bio: 'Design daily' },
     { email: 'mike.j@email.com', username: 'mike.travels', displayName: 'Mike Jones', firstName: 'Mike', lastName: 'Jones', bio: 'Adventure' },
     { email: 'emma.w@email.com', username: 'emma.art', displayName: 'Emma Wilson', firstName: 'Emma', lastName: 'Wilson', bio: 'Artist' },
@@ -159,6 +161,101 @@ async function main() {
       title: 'New follower',
       body: 'alex.photo started following you',
       link: '/profile/alex.photo',
+    },
+  })
+
+  // Private accounts and follow requests
+  const privateUsers = [
+    { email: 'nina.p@email.com', username: 'nina.private', displayName: 'Nina Patel', firstName: 'Nina', lastName: 'Patel', bio: 'Film photography 📷 close friends only', isPrivate: true },
+    { email: 'leo.m@email.com', username: 'leo.film', displayName: 'Leo Martins', firstName: 'Leo', lastName: 'Martins', bio: 'Super 8 · city nights', isPrivate: true },
+    { email: 'maya.r@email.com', username: 'maya.studio', displayName: 'Maya Rossi', firstName: 'Maya', lastName: 'Rossi', bio: 'Ceramics studio journal', isPrivate: true },
+    { email: 'olivia.c@email.com', username: 'olivia.cooks', displayName: 'Olivia Chen', firstName: 'Olivia', lastName: 'Chen', bio: 'Home cooking, every day 🍜' },
+  ]
+  const extra = []
+  for (let i = 0; i < privateUsers.length; i++) {
+    extra.push(
+      await prisma.user.create({
+        data: {
+          ...privateUsers[i],
+          passwordHash: pw,
+          avatarUrl: `https://i.pravatar.cc/150?img=${i + 20}`,
+          coverUrl: `https://picsum.photos/seed/igp${i}/800/300`,
+          settings: { create: {} },
+        },
+      }),
+    )
+  }
+  const [nina, leo, maya, olivia] = extra
+
+  const privateCaptions = ['Darkroom day #film', 'Contact sheet favourites', 'Late train home']
+  for (const u of extra) {
+    for (let i = 0; i < 3; i++) {
+      await prisma.post.create({
+        data: {
+          authorId: u.id,
+          caption: `${privateCaptions[i]} — ${u.displayName}`,
+          imageUrl: `https://picsum.photos/seed/${u.username}${i}/1080/1080`,
+          type: PostType.POST,
+          createdAt: new Date(Date.now() - (i * 5 + 2) * 3600000),
+        },
+      })
+    }
+  }
+
+  // nina: private, demo does not follow (locked profile). leo: private, demo follows (visible).
+  // maya: private, demo has a pending outgoing request ("Requested").
+  for (const [a, b] of [[emma, nina], [alex, leo], [sarah, leo], [olivia, maya]] as const) {
+    await prisma.follow.create({ data: { followerId: a.id, followingId: b.id } })
+  }
+  await prisma.story.create({
+    data: { userId: leo.id, imageUrl: 'https://picsum.photos/seed/story-leo.film/400/700', expiresAt: expires },
+  })
+  await prisma.story.create({
+    data: { userId: nina.id, imageUrl: 'https://picsum.photos/seed/story-nina.private/400/700', expiresAt: expires },
+  })
+
+  const requests = [
+    { requester: sarah, target: alex, minutesAgo: 12 },
+    { requester: david, target: alex, minutesAgo: 95 },
+    { requester: olivia, target: alex, minutesAgo: 60 * 26 },
+    { requester: alex, target: maya, minutesAgo: 60 * 5 },
+  ]
+  for (const { requester, target, minutesAgo } of requests) {
+    const createdAt = new Date(Date.now() - minutesAgo * 60000)
+    await prisma.followRequest.create({ data: { requesterId: requester.id, targetId: target.id, createdAt } })
+    await prisma.notification.create({
+      data: {
+        userId: target.id,
+        actorId: requester.id,
+        type: NotificationType.FOLLOW_REQUEST,
+        title: 'Follow request',
+        body: `${requester.username} requested to follow you.`,
+        link: '/notifications/requests',
+        createdAt,
+      },
+    })
+  }
+  await prisma.notification.create({
+    data: {
+      userId: alex.id,
+      actorId: leo.id,
+      type: NotificationType.FOLLOW_ACCEPT,
+      title: 'Follow request accepted',
+      body: 'leo.film accepted your follow request.',
+      link: '/profile/leo.film',
+      createdAt: new Date(Date.now() - 3 * 86400000),
+    },
+  })
+  await prisma.notification.create({
+    data: {
+      userId: alex.id,
+      actorId: emma.id,
+      type: NotificationType.POST_LIKE,
+      title: 'New like',
+      body: 'emma.art liked your post.',
+      link: '/profile/alex.photo',
+      read: true,
+      createdAt: new Date(Date.now() - 2 * 86400000),
     },
   })
 

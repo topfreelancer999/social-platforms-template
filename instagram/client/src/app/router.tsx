@@ -17,6 +17,7 @@ import { GroupsPage } from '@/features/groups/GroupsPage'
 import { GroupDetailPage } from '@/features/groups/GroupDetailPage'
 import { MessagingPage } from '@/features/messaging/MessagingPage'
 import { NotificationsPage } from '@/features/notifications/NotificationsPage'
+import { FollowRequestsPage } from '@/features/notifications/FollowRequestsPage'
 import { PageDetailPage } from '@/features/pages/PageDetailPage'
 import { FeedbackPage } from '@/features/feedback/FeedbackPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
@@ -67,6 +68,7 @@ export function AppRouter() {
         <Route path="messages" element={<Private><MessagingPage /></Private>} />
         <Route path="messages/:threadId" element={<Private><MessagingPage /></Private>} />
         <Route path="notifications" element={<Private><NotificationsPage /></Private>} />
+        <Route path="notifications/requests" element={<Private><FollowRequestsPage /></Private>} />
         <Route path="pages/:slug" element={<PageDetailPage />} />
         <Route path="feedback" element={<Private><FeedbackPage /></Private>} />
         <Route path="settings/:section?" element={<Private><SettingsPage /></Private>} />

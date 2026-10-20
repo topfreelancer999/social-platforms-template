@@ -1,6 +1,7 @@
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Lock } from 'lucide-react'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import type { IgPost } from '@/features/feed/PostCard'
@@ -45,11 +46,14 @@ export function SearchPage() {
         ))}
       </div>
       {tab === 'users' && Array.isArray(data?.users) &&
-        (data.users as { username: string; displayName?: string; firstName: string; avatarUrl: string }[]).map((u) => (
+        (data.users as { username: string; displayName?: string; firstName: string; avatarUrl: string; isPrivate?: boolean }[]).map((u) => (
           <Link key={u.username} to={`/profile/${u.username}`} className="flex items-center gap-3 py-2 hover:bg-ig-hover rounded-lg px-2">
             <img src={u.avatarUrl} alt="" className="w-11 h-11 rounded-full" />
-            <div>
-              <p className="font-semibold text-sm">{u.username}</p>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm flex items-center gap-1">
+                <span className="truncate">{u.username}</span>
+                {u.isPrivate && <Lock size={12} aria-label="Private account" className="shrink-0" />}
+              </p>
               <p className="text-ig-muted text-sm">{u.displayName || u.firstName}</p>
             </div>
           </Link>

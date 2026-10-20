@@ -29,6 +29,7 @@ export function PostCard({ post }: { post: IgPost }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['feed'] })
       qc.invalidateQueries({ queryKey: ['explore'] })
+      qc.invalidateQueries({ queryKey: ['post', post.id] })
     },
   })
   const addComment = useMutation({
@@ -41,6 +42,7 @@ export function PostCard({ post }: { post: IgPost }) {
     onSuccess: () => {
       setComment('')
       qc.invalidateQueries({ queryKey: ['feed'] })
+      qc.invalidateQueries({ queryKey: ['post', post.id] })
     },
   })
 

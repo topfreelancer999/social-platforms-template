@@ -1,6 +1,9 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Home, Search, PlusSquare, Film, User, MessageCircle, Heart } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { activityQueryKey, fetchActivity } from '@/features/notifications/activity'
+import { useActivitySocket } from '@/features/notifications/useActivitySocket'
 
 const nav = [
   { to: '/', icon: Home, label: 'Home' },
@@ -11,8 +14,17 @@ const nav = [
 
 export function InstagramLayout() {
   const user = useAuthStore((s) => s.user)
+  const token = useAuthStore((s) => s.accessToken)
   const loc = useLocation()
   const profileTo = user ? `/profile/${user.username}` : '/login'
+  useActivitySocket(user ? token : null)
+  const { data: activity } = useQuery({
+    queryKey: activityQueryKey,
+    queryFn: () => fetchActivity(token),
+    enabled: !!user && !!token,
+    refetchInterval: 60_000,
+  })
+  const hasActivity = !!activity && activity.unread > 0
 
   return (
     <div className="min-h-screen flex flex-col max-w-[935px] mx-auto border-x border-ig-border">
@@ -21,9 +33,14 @@ export function InstagramLayout() {
           Instagram
         </Link>
         <div className="flex items-center gap-4">
-          <Link to="/search" className="hidden sm:block hover:opacity-70"><Search size={24} /></Link>
-          <Link to="/messages" className="hover:opacity-70"><MessageCircle size={24} /></Link>
-          <Link to="/notifications" className="hover:opacity-70"><Heart size={24} /></Link>
+          <Link to="/search" aria-label="Search" className="hover:opacity-70"><Search size={24} /></Link>
+          <Link to="/messages" aria-label="Messages" className="hover:opacity-70"><MessageCircle size={24} /></Link>
+          <Link to="/notifications" aria-label="Notifications" className="relative hover:opacity-70">
+            <Heart size={24} />
+            {hasActivity && (
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-ig-danger ring-2 ring-ig-bg" aria-label="New activity" />
+            )}
+          </Link>
           {user && (
             <Link to={profileTo}>
               <img src={user.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover" />

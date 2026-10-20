@@ -25,6 +25,8 @@ enum GroupPrivacy {
 
 enum NotificationType {
   FOLLOW
+  FOLLOW_REQUEST
+  FOLLOW_ACCEPT
   POST_LIKE
   COMMENT
   MESSAGE
@@ -55,6 +57,8 @@ model User {
   stories             Story[]
   followers           Follow[]           @relation("Following")
   following           Follow[]           @relation("Follower")
+  sentFollowRequests     FollowRequest[] @relation("FollowRequester")
+  receivedFollowRequests FollowRequest[] @relation("FollowRequestTarget")
   comments            Comment[]
   groupMembers        GroupMember[]
   createdGroups       Group[]            @relation("GroupCreator")
@@ -87,6 +91,19 @@ model Follow {
   following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+}
+
+/// Pending request to follow a private account. Accepting turns it into a Follow row.
+model FollowRequest {
+  id          String   @id @default(cuid())
+  requesterId String
+  targetId    String
+  createdAt   DateTime @default(now())
+  requester   User     @relation("FollowRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  target      User     @relation("FollowRequestTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, targetId])
+  @@index([targetId, createdAt])
 }
 
 model Post {
