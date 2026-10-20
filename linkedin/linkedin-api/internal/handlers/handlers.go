@@ -50,6 +50,14 @@ func NewRouter(st *store.Store) http.Handler {
 			r.Post("/users/{id}/connect", api.Connect)
 			r.Post("/users/{id}/follow", api.Follow)
 
+			r.Get("/users/{id}/skills", api.ListSkills)
+			r.Post("/users/{id}/skills", api.AddSkill)
+			r.Patch("/users/{id}/skills/{skillId}", api.UpdateSkill)
+			r.Delete("/users/{id}/skills/{skillId}", api.DeleteSkill)
+			r.Get("/users/{id}/skills/{skillId}/endorsers", api.ListSkillEndorsers)
+			r.Post("/users/{id}/skills/{skillId}/endorse", api.EndorseSkill)
+			r.Delete("/users/{id}/skills/{skillId}/endorse", api.UnendorseSkill)
+
 			r.Get("/network", api.Network)
 			r.Post("/invitations/{id}/accept", api.AcceptInvitation)
 			r.Post("/invitations/{id}/ignore", api.IgnoreInvitation)

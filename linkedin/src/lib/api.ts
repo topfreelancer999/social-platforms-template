@@ -13,8 +13,9 @@ export async function api<T>(
   options?: RequestInit,
 ): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
     ...options,
+    // Merge last so callers passing auth headers keep the JSON content type.
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

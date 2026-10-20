@@ -34,7 +34,10 @@ function mergeWithSeed(stored: MockDatabase): MockDatabase {
 function mergeUsers(seedUsers: MockDatabase['users'], storedUsers: MockDatabase['users']) {
   return seedUsers.map((su) => {
     const found = storedUsers.find((u) => u.id === su.id)
-    return found ? { ...su, ...found } : su
+    if (!found) return su
+    // Data saved before skill endorsements existed has no endorserIds; take the seeded skills.
+    const skills = found.skills?.every((s) => Array.isArray(s.endorserIds)) ? found.skills : su.skills
+    return { ...su, ...found, skills }
   }).concat(storedUsers.filter((u) => !seedUsers.some((s) => s.id === u.id)))
 }
 
@@ -59,8 +62,10 @@ export function resetDb() {
 }
 
 export function toPublicUser(user: MockDatabase['users'][0]) {
-  const { email: _e, password: _p, ...rest } = user
-  return rest
+  const rest: Partial<typeof user> = { ...user }
+  delete rest.email
+  delete rest.password
+  return rest as Omit<typeof user, 'email' | 'password'>
 }
 
 export function getCurrentUserId(): string | null {

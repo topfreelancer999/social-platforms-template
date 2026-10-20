@@ -62,17 +62,48 @@
         {
           "id": "s1",
           "name": "Product Strategy",
-          "endorsements": 42
-        },
-        {
-          "id": "s2",
-          "name": "Agile",
-          "endorsements": 28
+          "endorsements": 4,
+          "endorserIds": [
+            "u3",
+            "u5",
+            "u4",
+            "u2"
+          ],
+          "pinned": true
         },
         {
           "id": "s3",
           "name": "User Research",
-          "endorsements": 35
+          "endorsements": 3,
+          "endorserIds": [
+            "u2",
+            "u5",
+            "u3"
+          ],
+          "pinned": true
+        },
+        {
+          "id": "s2",
+          "name": "Agile",
+          "endorsements": 2,
+          "endorserIds": [
+            "u4",
+            "u2"
+          ]
+        },
+        {
+          "id": "s12",
+          "name": "Product Roadmapping",
+          "endorsements": 1,
+          "endorserIds": [
+            "u4"
+          ]
+        },
+        {
+          "id": "s13",
+          "name": "SQL",
+          "endorsements": 0,
+          "endorserIds": []
         }
       ]
     },
@@ -121,12 +152,35 @@
         {
           "id": "s4",
           "name": "React",
-          "endorsements": 55
+          "endorsements": 2,
+          "endorserIds": [
+            "u6",
+            "u3"
+          ],
+          "pinned": true
         },
         {
           "id": "s5",
           "name": "TypeScript",
-          "endorsements": 48
+          "endorsements": 2,
+          "endorserIds": [
+            "u3",
+            "u1"
+          ]
+        },
+        {
+          "id": "s14",
+          "name": "Node.js",
+          "endorsements": 1,
+          "endorserIds": [
+            "u6"
+          ]
+        },
+        {
+          "id": "s15",
+          "name": "GraphQL",
+          "endorsements": 0,
+          "endorserIds": []
         }
       ]
     },
@@ -165,12 +219,27 @@
         {
           "id": "s6",
           "name": "Figma",
-          "endorsements": 62
+          "endorsements": 3,
+          "endorserIds": [
+            "u4",
+            "u2",
+            "u1"
+          ],
+          "pinned": true
         },
         {
           "id": "s7",
           "name": "Design Systems",
-          "endorsements": 40
+          "endorsements": 1,
+          "endorserIds": [
+            "u2"
+          ]
+        },
+        {
+          "id": "s16",
+          "name": "Accessibility",
+          "endorsements": 0,
+          "endorserIds": []
         }
       ]
     },
@@ -208,7 +277,19 @@
         {
           "id": "s8",
           "name": "Leadership",
-          "endorsements": 30
+          "endorsements": 2,
+          "endorserIds": [
+            "u5",
+            "u3"
+          ]
+        },
+        {
+          "id": "s17",
+          "name": "Engineering Management",
+          "endorsements": 1,
+          "endorserIds": [
+            "u1"
+          ]
         }
       ]
     },
@@ -246,7 +327,18 @@
         {
           "id": "s9",
           "name": "Digital Marketing",
-          "endorsements": 22
+          "endorsements": 1,
+          "endorserIds": [
+            "u4"
+          ]
+        },
+        {
+          "id": "s18",
+          "name": "Content Strategy",
+          "endorsements": 1,
+          "endorserIds": [
+            "u1"
+          ]
         }
       ]
     },
@@ -273,7 +365,16 @@
         {
           "id": "s10",
           "name": "Python",
-          "endorsements": 18
+          "endorsements": 1,
+          "endorserIds": [
+            "u2"
+          ]
+        },
+        {
+          "id": "s19",
+          "name": "Machine Learning",
+          "endorsements": 0,
+          "endorserIds": []
         }
       ]
     },
@@ -298,7 +399,8 @@
         {
           "id": "s11",
           "name": "Talent Acquisition",
-          "endorsements": 15
+          "endorsements": 0,
+          "endorserIds": []
         }
       ]
     },
@@ -322,7 +424,20 @@
       "companyId": "c3",
       "experience": [],
       "education": [],
-      "skills": []
+      "skills": [
+        {
+          "id": "s20",
+          "name": "Entrepreneurship",
+          "endorsements": 0,
+          "endorserIds": []
+        },
+        {
+          "id": "s21",
+          "name": "Fundraising",
+          "endorsements": 0,
+          "endorserIds": []
+        }
+      ]
     },
     {
       "id": "u9",

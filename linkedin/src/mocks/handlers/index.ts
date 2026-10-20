@@ -9,12 +9,14 @@ import { networkHandlers } from './network'
 import { notificationHandlers } from './notifications'
 import { searchHandlers } from './search'
 import { settingsHandlers } from './settings'
+import { skillHandlers } from './skills'
 import { userHandlers } from './users'
 
 export const handlers = [
   ...authHandlers,
   ...feedHandlers,
   ...userHandlers,
+  ...skillHandlers,
   ...networkHandlers,
   ...searchHandlers,
   ...jobHandlers,

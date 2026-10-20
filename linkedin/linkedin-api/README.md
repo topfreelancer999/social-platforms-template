@@ -67,7 +67,14 @@ All routes are under `/api` and match the frontend mock handlers:
 
 - **Auth**: `POST /auth/login`, `POST /auth/register`, `GET /auth/me`
 - **Feed**: `GET /feed`, `POST /posts`, reactions, comments, repost
-- **Users**: `GET /users/{id}`, `PATCH /users/me`, connect, follow
+- **Users**: `GET /users/{id}`, `PATCH /users/me` (ignores `skills`), connect, follow
+- **Skills & endorsements** (`{id}` is an id, username or `me`):
+  - `GET /users/{id}/skills` — skills for the viewer (`endorsedByMe`, up to 3 endorser previews, colleague highlight) plus `isOwner` / `canEndorse`
+  - `POST /users/{id}/skills` `{ name }` — owner only; 400 empty / >80 chars / >50 skills, 409 duplicate (case-insensitive)
+  - `PATCH /users/{id}/skills/{skillId}` `{ pinned }` — owner only; max 3 top skills
+  - `DELETE /users/{id}/skills/{skillId}` — owner only
+  - `GET /users/{id}/skills/{skillId}/endorsers` — full endorser list (viewer first, then most recent)
+  - `POST|DELETE /users/{id}/skills/{skillId}/endorse` — 400 own skill, 403 not a 1st-degree connection, 409 already / not endorsed; endorsing notifies the owner (`skill_endorsement`)
 - **Network**: `GET /network`, invitations accept/ignore
 - **Search**: `GET /search?q=&type=`
 - **Jobs**: list, detail, apply, save, alerts
@@ -91,6 +98,16 @@ make seed-export
 ```
 
 Exports from `../linkedin/src/mocks/seed` and copies into `internal/store/seed.json`.
+
+If Redis already holds `linkedin:db` from before skill endorsements existed, run `POST /admin/reset` to load the new seed (skills seeded with `endorserIds`).
+
+## Tests
+
+```bash
+go test ./...
+```
+
+Handler tests run the real router against the in-memory store (no Redis needed).
 
 ## Project layout
 

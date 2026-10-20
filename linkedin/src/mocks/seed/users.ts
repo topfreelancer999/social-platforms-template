@@ -1,9 +1,18 @@
-import type { User } from '@/types'
+import type { Skill, User } from '@/types'
 
 const avatar = (id: number) =>
   `https://i.pravatar.cc/150?img=${id}`
 const cover = (id: number) =>
   `https://picsum.photos/seed/cover${id}/1200/300`
+
+// The endorsement count always mirrors endorserIds so the endorsers list matches the number shown.
+const skill = (id: string, name: string, endorserIds: string[] = [], pinned = false): Skill => ({
+  id,
+  name,
+  endorsements: endorserIds.length,
+  endorserIds,
+  ...(pinned ? { pinned } : {}),
+})
 
 export const seedUsers: User[] = [
   {
@@ -55,9 +64,11 @@ export const seedUsers: User[] = [
       },
     ],
     skills: [
-      { id: 's1', name: 'Product Strategy', endorsements: 42 },
-      { id: 's2', name: 'Agile', endorsements: 28 },
-      { id: 's3', name: 'User Research', endorsements: 35 },
+      skill('s1', 'Product Strategy', ['u3', 'u5', 'u4', 'u2'], true),
+      skill('s3', 'User Research', ['u2', 'u5', 'u3'], true),
+      skill('s2', 'Agile', ['u4', 'u2']),
+      skill('s12', 'Product Roadmapping', ['u4']),
+      skill('s13', 'SQL'),
     ],
   },
   {
@@ -96,8 +107,10 @@ export const seedUsers: User[] = [
       },
     ],
     skills: [
-      { id: 's4', name: 'React', endorsements: 55 },
-      { id: 's5', name: 'TypeScript', endorsements: 48 },
+      skill('s4', 'React', ['u6', 'u3'], true),
+      skill('s5', 'TypeScript', ['u3', 'u1']),
+      skill('s14', 'Node.js', ['u6']),
+      skill('s15', 'GraphQL'),
     ],
   },
   {
@@ -126,8 +139,9 @@ export const seedUsers: User[] = [
     ],
     education: [],
     skills: [
-      { id: 's6', name: 'Figma', endorsements: 62 },
-      { id: 's7', name: 'Design Systems', endorsements: 40 },
+      skill('s6', 'Figma', ['u4', 'u2', 'u1'], true),
+      skill('s7', 'Design Systems', ['u2']),
+      skill('s16', 'Accessibility'),
     ],
   },
   {
@@ -156,7 +170,10 @@ export const seedUsers: User[] = [
       },
     ],
     education: [],
-    skills: [{ id: 's8', name: 'Leadership', endorsements: 30 }],
+    skills: [
+      skill('s8', 'Leadership', ['u5', 'u3']),
+      skill('s17', 'Engineering Management', ['u1']),
+    ],
   },
   {
     id: 'u5',
@@ -183,7 +200,10 @@ export const seedUsers: User[] = [
       },
     ],
     education: [],
-    skills: [{ id: 's9', name: 'Digital Marketing', endorsements: 22 }],
+    skills: [
+      skill('s9', 'Digital Marketing', ['u4']),
+      skill('s18', 'Content Strategy', ['u1']),
+    ],
   },
   {
     id: 'u6',
@@ -202,7 +222,7 @@ export const seedUsers: User[] = [
     followingIds: [],
     experience: [],
     education: [],
-    skills: [{ id: 's10', name: 'Python', endorsements: 18 }],
+    skills: [skill('s10', 'Python', ['u2']), skill('s19', 'Machine Learning')],
   },
   {
     id: 'u7',
@@ -221,7 +241,7 @@ export const seedUsers: User[] = [
     followingIds: [],
     experience: [],
     education: [],
-    skills: [{ id: 's11', name: 'Talent Acquisition', endorsements: 15 }],
+    skills: [skill('s11', 'Talent Acquisition')],
   },
   {
     id: 'u8',
@@ -241,7 +261,7 @@ export const seedUsers: User[] = [
     companyId: 'c3',
     experience: [],
     education: [],
-    skills: [],
+    skills: [skill('s20', 'Entrepreneurship'), skill('s21', 'Fundraising')],
   },
   {
     id: 'u9',

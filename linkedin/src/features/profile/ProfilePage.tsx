@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { authHeaders } from '@/hooks/useAuth'
@@ -11,11 +11,25 @@ import { Card } from '@/components/ui/Card'
 import { Tabs } from '@/components/ui/Tabs'
 import { Spinner } from '@/components/ui/Spinner'
 import { useState } from 'react'
+import { SkillsSection } from './SkillsSection'
+
+const TABS = [
+  { id: 'about', label: 'About' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'education', label: 'Education' },
+  { id: 'skills', label: 'Skills' },
+]
 
 export function ProfilePage() {
   const { username } = useParams()
   const { user: me } = useAuth()
-  const [tab, setTab] = useState('about')
+  const [searchParams] = useSearchParams()
+  // ?tab=skills deep-links from endorsement notifications.
+  const [tab, setTab] = useState(() => {
+    const requested = searchParams.get('tab')
+    return TABS.some((t) => t.id === requested) ? requested! : 'about'
+  })
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -42,6 +56,7 @@ export function ProfilePage() {
 
   const { user, degree } = data
   const isMe = me?.id === user.id
+  const topSkills = (user.skills ?? []).filter((s) => s.pinned).map((s) => s.name)
 
   return (
     <div className="space-y-2 max-w-[900px]">
@@ -73,14 +88,14 @@ export function ProfilePage() {
                 {formatCount(user.connectionIds.length)} connections
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-start gap-2">
               {isMe ? (
                 <Link to={`/in/${user.username}/edit`}>
                   <Button variant="outline">Edit profile</Button>
                 </Link>
               ) : (
                 <>
-                  <Button onClick={() => connect.mutate()}>Connect</Button>
+                  {degree !== 1 && <Button onClick={() => connect.mutate()}>Connect</Button>}
                   <Link to="/messaging">
                     <Button variant="outline">Message</Button>
                   </Link>
@@ -91,22 +106,22 @@ export function ProfilePage() {
         </div>
       </Card>
       <Card padding={false}>
-        <Tabs
-          tabs={[
-            { id: 'about', label: 'About' },
-            { id: 'activity', label: 'Activity' },
-            { id: 'experience', label: 'Experience' },
-            { id: 'education', label: 'Education' },
-            { id: 'skills', label: 'Skills' },
-          ]}
-          active={tab}
-          onChange={setTab}
-        />
+        <Tabs tabs={TABS} active={tab} onChange={setTab} />
         <div className="p-6">
           {tab === 'about' && (
             <div>
               <h2 className="font-semibold mb-2">About</h2>
               <p className="text-sm whitespace-pre-wrap">{user.about || 'No about section yet.'}</p>
+              {topSkills.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTab('skills')}
+                  className="mt-4 w-full text-left rounded-lg border border-linkedin-border p-3 hover:bg-gray-50"
+                >
+                  <p className="font-semibold text-sm">Top skills</p>
+                  <p className="text-sm text-linkedin-muted">{topSkills.join(' • ')}</p>
+                </button>
+              )}
             </div>
           )}
           {tab === 'experience' && (
@@ -137,16 +152,7 @@ export function ProfilePage() {
             </div>
           )}
           {tab === 'skills' && (
-            <div className="flex flex-wrap gap-2">
-              {user.skills.map((s) => (
-                <span
-                  key={s.id}
-                  className="px-3 py-1 bg-linkedin-bg rounded-full text-sm border"
-                >
-                  {s.name} · {s.endorsements} endorsements
-                </span>
-              ))}
-            </div>
+            <SkillsSection key={user.id} username={user.username} firstName={user.firstName} />
           )}
           {tab === 'activity' && (
             <p className="text-sm text-linkedin-muted">

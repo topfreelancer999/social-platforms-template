@@ -10,6 +10,7 @@ export type NotificationType =
   | 'profile_view'
   | 'group_invite'
   | 'message'
+  | 'skill_endorsement'
 export type SearchTab = 'all' | 'people' | 'jobs' | 'companies' | 'posts' | 'groups'
 
 export interface Experience {
@@ -35,7 +36,45 @@ export interface Education {
 export interface Skill {
   id: string
   name: string
+  /** Always equals endorserIds.length; kept for older consumers. */
   endorsements: number
+  endorserIds?: string[]
+  /** Shown first as one of the owner's "Top skills". */
+  pinned?: boolean
+}
+
+/** Minimal person card used in endorsement previews and the endorsers list. */
+export interface SkillEndorser {
+  id: string
+  username: string
+  firstName: string
+  lastName: string
+  headline: string
+  avatarUrl: string
+  degree?: 1 | 2 | 3 | null
+}
+
+/** A skill as seen by the current viewer (GET /users/:id/skills). */
+export interface SkillView {
+  id: string
+  name: string
+  endorsements: number
+  pinned: boolean
+  endorsedByMe: boolean
+  /** Up to 3 endorsers: the viewer first, then the most recent. */
+  endorsers: SkillEndorser[]
+  colleagueHighlight?: { company: string; count: number }
+}
+
+export interface SkillsResponse {
+  skills: SkillView[]
+  isOwner: boolean
+  canEndorse: boolean
+}
+
+export interface SkillEndorsersResponse {
+  skill: { id: string; name: string }
+  items: SkillEndorser[]
 }
 
 export interface User {
@@ -61,7 +100,7 @@ export interface User {
   companyId?: string
 }
 
-export interface UserPublic extends Omit<User, 'email' | 'password'> {}
+export type UserPublic = Omit<User, 'email' | 'password'>
 
 export interface Comment {
   id: string

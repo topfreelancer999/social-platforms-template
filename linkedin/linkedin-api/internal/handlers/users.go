@@ -51,6 +51,8 @@ func (api *API) PatchMe(w http.ResponseWriter, r *http.Request) {
 		middleware.WriteJSON(w, http.StatusBadRequest, models.ErrorResponse{Message: "invalid body"})
 		return
 	}
+	// Skills go through /api/users/{id}/skills so endorsement rules can't be bypassed here.
+	delete(patch, "skills")
 	var updated models.UserPublic
 	err := api.Store.Mutate(r.Context(), func(db *models.Database) error {
 		for i := range db.Users {

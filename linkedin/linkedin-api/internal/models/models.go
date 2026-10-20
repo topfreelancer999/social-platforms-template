@@ -1,24 +1,24 @@
 package models
 
 type Database struct {
-	Users           []User            `json:"users"`
-	Companies       []Company         `json:"companies"`
-	Posts           []Post            `json:"posts"`
-	Comments        []Comment         `json:"comments"`
-	Jobs            []Job             `json:"jobs"`
-	Groups          []Group           `json:"groups"`
-	Courses         []Course          `json:"courses"`
-	Invitations     []Invitation      `json:"invitations"`
-	Threads         []Thread          `json:"threads"`
-	Messages        []Message         `json:"messages"`
-	Notifications   []Notification    `json:"notifications"`
-	Events          []Event           `json:"events"`
-	Settings        []Settings        `json:"settings"`
-	JobApplications []JobApplication  `json:"jobApplications"`
+	Users           []User              `json:"users"`
+	Companies       []Company           `json:"companies"`
+	Posts           []Post              `json:"posts"`
+	Comments        []Comment           `json:"comments"`
+	Jobs            []Job               `json:"jobs"`
+	Groups          []Group             `json:"groups"`
+	Courses         []Course            `json:"courses"`
+	Invitations     []Invitation        `json:"invitations"`
+	Threads         []Thread            `json:"threads"`
+	Messages        []Message           `json:"messages"`
+	Notifications   []Notification      `json:"notifications"`
+	Events          []Event             `json:"events"`
+	Settings        []Settings          `json:"settings"`
+	JobApplications []JobApplication    `json:"jobApplications"`
 	SavedJobIds     map[string][]string `json:"savedJobIds"`
-	JobAlerts       []JobAlert        `json:"jobAlerts"`
-	CourseProgress  []CourseProgress  `json:"courseProgress"`
-	Sessions        map[string]string `json:"sessions"`
+	JobAlerts       []JobAlert          `json:"jobAlerts"`
+	CourseProgress  []CourseProgress    `json:"courseProgress"`
+	Sessions        map[string]string   `json:"sessions"`
 }
 
 type User struct {
@@ -86,9 +86,13 @@ type Education struct {
 }
 
 type Skill struct {
-	ID            string `json:"id"`
-	Name          string `json:"name"`
-	Endorsements  int    `json:"endorsements"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Endorsements always equals len(EndorserIDs); kept for older clients.
+	Endorsements int      `json:"endorsements"`
+	EndorserIDs  []string `json:"endorserIds"`
+	// Pinned skills are shown first as the owner's "Top skills".
+	Pinned bool `json:"pinned,omitempty"`
 }
 
 type Comment struct {
@@ -122,19 +126,19 @@ type Post struct {
 }
 
 type Job struct {
-	ID               string   `json:"id"`
-	Title            string   `json:"title"`
-	CompanyID        string   `json:"companyId"`
-	Location         string   `json:"location"`
-	Remote           bool     `json:"remote"`
-	ExperienceLevel  string   `json:"experienceLevel"`
-	EmploymentType   string   `json:"employmentType"`
-	Description      string   `json:"description"`
-	Qualifications   []string `json:"qualifications"`
-	Salary           string   `json:"salary,omitempty"`
-	Applicants       int      `json:"applicants"`
-	PostedAt         string   `json:"postedAt"`
-	Promoted         bool     `json:"promoted,omitempty"`
+	ID              string   `json:"id"`
+	Title           string   `json:"title"`
+	CompanyID       string   `json:"companyId"`
+	Location        string   `json:"location"`
+	Remote          bool     `json:"remote"`
+	ExperienceLevel string   `json:"experienceLevel"`
+	EmploymentType  string   `json:"employmentType"`
+	Description     string   `json:"description"`
+	Qualifications  []string `json:"qualifications"`
+	Salary          string   `json:"salary,omitempty"`
+	Applicants      int      `json:"applicants"`
+	PostedAt        string   `json:"postedAt"`
+	Promoted        bool     `json:"promoted,omitempty"`
 }
 
 type JobApplication struct {
@@ -188,10 +192,10 @@ type Course struct {
 }
 
 type CourseProgress struct {
-	CourseID             string   `json:"courseId"`
-	UserID               string   `json:"userId"`
-	CompletedLessonIDs   []string `json:"completedLessonIds"`
-	Percent              int      `json:"percent"`
+	CourseID           string   `json:"courseId"`
+	UserID             string   `json:"userId"`
+	CompletedLessonIDs []string `json:"completedLessonIds"`
+	Percent            int      `json:"percent"`
 }
 
 type Invitation struct {
@@ -203,10 +207,10 @@ type Invitation struct {
 }
 
 type Thread struct {
-	ID             string            `json:"id"`
-	ParticipantIDs []string          `json:"participantIds"`
-	LastMessageAt  string            `json:"lastMessageAt"`
-	UnreadBy       map[string]int    `json:"unreadBy"`
+	ID             string         `json:"id"`
+	ParticipantIDs []string       `json:"participantIds"`
+	LastMessageAt  string         `json:"lastMessageAt"`
+	UnreadBy       map[string]int `json:"unreadBy"`
 }
 
 type Message struct {
@@ -248,14 +252,14 @@ type JobAlert struct {
 }
 
 type Settings struct {
-	UserID              string `json:"userId"`
-	EmailNotifications  bool   `json:"emailNotifications"`
-	PushNotifications   bool   `json:"pushNotifications"`
-	ProfileVisibility   string `json:"profileVisibility"`
-	ActivityVisibility  bool   `json:"activityVisibility"`
-	MessagingFrom       string `json:"messagingFrom"`
-	Language            string `json:"language"`
-	Theme               string `json:"theme"`
+	UserID             string `json:"userId"`
+	EmailNotifications bool   `json:"emailNotifications"`
+	PushNotifications  bool   `json:"pushNotifications"`
+	ProfileVisibility  string `json:"profileVisibility"`
+	ActivityVisibility bool   `json:"activityVisibility"`
+	MessagingFrom      string `json:"messagingFrom"`
+	Language           string `json:"language"`
+	Theme              string `json:"theme"`
 }
 
 type AuthResponse struct {
@@ -272,11 +276,11 @@ type PaginatedFeed struct {
 
 type EnrichedPost struct {
 	Post
-	Author           *UserPublic       `json:"author"`
-	Comments         []EnrichedComment `json:"comments"`
-	Repost           *EnrichedPost     `json:"repost,omitempty"`
-	ReactionSummary  map[string]int    `json:"reactionSummary"`
-	TotalReactions   int               `json:"totalReactions"`
+	Author          *UserPublic       `json:"author"`
+	Comments        []EnrichedComment `json:"comments"`
+	Repost          *EnrichedPost     `json:"repost,omitempty"`
+	ReactionSummary map[string]int    `json:"reactionSummary"`
+	TotalReactions  int               `json:"totalReactions"`
 }
 
 type EnrichedComment struct {

@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { generateId, getDb, requireUserId, setDb, toPublicUser } from '../db'
 
-function connectionDegree(
+export function connectionDegree(
   viewerId: string | null,
   targetId: string,
   db: ReturnType<typeof getDb>,
@@ -41,10 +41,12 @@ export const userHandlers = [
   http.patch('/api/users/me', async ({ request }) => {
     const userId = requireUserId(request.headers)
     if (!userId) return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    const body = await request.json()
+    // Skills go through /api/users/:id/skills so endorsement rules can't be bypassed here.
+    const body = (await request.json()) as Record<string, unknown>
+    delete body.skills
     setDb((d) => {
       const idx = d.users.findIndex((u) => u.id === userId)
-      if (idx >= 0) d.users[idx] = { ...d.users[idx], ...(body as object) }
+      if (idx >= 0) d.users[idx] = { ...d.users[idx], ...body }
     })
     const user = getDb().users.find((u) => u.id === userId)!
     return HttpResponse.json(toPublicUser(user))
