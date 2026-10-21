@@ -41,20 +41,22 @@ model User {
   lastSeen     DateTime @default(now())
   createdAt    DateTime @default(now())
 
-  settings            UserSettings?
-  contacts            Contact[]         @relation("Owner")
-  contactOf           Contact[]         @relation("ContactUser")
-  channelMemberships  ChannelMember[]
-  ownedChannels       Channel[]         @relation("ChannelOwner")
-  groupMembers        GroupMember[]
-  createdGroups       Group[]           @relation("GroupCreator")
-  notifications       Notification[]    @relation("NotificationUser")
-  actorNotifications  Notification[]    @relation("NotificationActor")
-  messages            Message[]
-  threadParticipants  ThreadParticipant[]
-  reviews             Review[]
-  feedbacks           Feedback[]
-  reports             Report[]
+  settings           UserSettings?
+  contacts           Contact[]           @relation("Owner")
+  contactOf          Contact[]           @relation("ContactUser")
+  channelMemberships ChannelMember[]
+  ownedChannels      Channel[]           @relation("ChannelOwner")
+  groupMembers       GroupMember[]
+  createdGroups      Group[]             @relation("GroupCreator")
+  notifications      Notification[]      @relation("NotificationUser")
+  actorNotifications Notification[]      @relation("NotificationActor")
+  messages           Message[]
+  forwardedMessages  Message[]           @relation("ForwardedMessages")
+  hiddenMessages     MessageHidden[]
+  threadParticipants ThreadParticipant[]
+  reviews            Review[]
+  feedbacks          Feedback[]
+  reports            Report[]
 }
 
 model UserSettings {
@@ -164,16 +166,42 @@ model ThreadParticipant {
 }
 
 model Message {
-  id        String      @id @default(cuid())
-  threadId  String
-  senderId  String
-  content   String
-  type      MessageType @default(TEXT)
-  mediaUrl  String?
-  read      Boolean     @default(false)
-  createdAt DateTime    @default(now())
-  thread    Thread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  sender    User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  id                String          @id @default(cuid())
+  threadId          String
+  senderId          String
+  content           String
+  type              MessageType     @default(TEXT)
+  mediaUrl          String?
+  read              Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  editedAt          DateTime?
+  replyToId         String?
+  // Set when the quoted message is deleted for everyone, so the reply can show "Deleted message".
+  replyToDeleted    Boolean         @default(false)
+  // Forward header snapshot: survives the original message (or its sender) being deleted.
+  forwardedFromId   String?
+  forwardedFromName String?
+  forwardedDate     DateTime?
+  thread            Thread          @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender            User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo           Message?        @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies           Message[]       @relation("MessageReplies")
+  forwardedFrom     User?           @relation("ForwardedMessages", fields: [forwardedFromId], references: [id], onDelete: SetNull)
+  hiddenFor         MessageHidden[]
+
+  @@index([threadId, createdAt])
+}
+
+/// "Delete for me": hides a message for one user while other participants still see it.
+model MessageHidden {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
 }
 
 model Page {

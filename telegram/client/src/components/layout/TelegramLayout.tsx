@@ -6,6 +6,7 @@ import { ChatsListPage } from '@/features/chats/ChatsListPage'
 import { ChannelsPage } from '@/features/channels/ChannelsPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { GroupsPage } from '@/features/groups/GroupsPage'
+import { useChatSocket } from '@/features/chats/useChatSocket'
 
 const sideLinks = [
   { to: '/', icon: MessageCircle, label: 'Chats' },
@@ -25,6 +26,7 @@ function SidebarList() {
 export function TelegramLayout() {
   const user = useAuthStore((s) => s.user)
   const { pathname } = useLocation()
+  useChatSocket()
   const listOnly = ['/', '/channels', '/contacts', '/groups'].includes(pathname)
   const hasMain = !listOnly
   const hideSidebarOnMobile =

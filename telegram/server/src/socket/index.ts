@@ -4,8 +4,9 @@ import { createAdapter } from '@socket.io/redis-adapter'
 import { createClient } from 'redis'
 import { config } from '../config.js'
 import { verifyAccessToken } from '../lib/auth.js'
-import { prisma } from '../lib/prisma.js'
-import { toPublicUser } from '../lib/user.js'
+import { HttpError } from '../lib/http.js'
+import { MAX_MESSAGE_LENGTH, createMessage } from '../lib/messages.js'
+import { setRealtimeServer } from '../lib/realtime.js'
 
 export async function setupSocket(httpServer: HttpServer) {
   const io = new Server(httpServer, {
@@ -23,6 +24,8 @@ export async function setupSocket(httpServer: HttpServer) {
     console.warn('Socket.io Redis adapter unavailable:', e)
   }
 
+  setRealtimeServer(io)
+
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token as string | undefined
     if (!token) return next(new Error('Unauthorized'))
@@ -39,30 +42,36 @@ export async function setupSocket(httpServer: HttpServer) {
     const userId = socket.data.userId as string
     socket.join(`user:${userId}`)
 
-    socket.on('message:send', async (data: { threadId: string; content: string }) => {
-      const msg = await prisma.message.create({
-        data: { threadId: data.threadId, senderId: userId, content: data.content },
-        include: { sender: true },
-      })
-      await prisma.thread.update({
-        where: { id: data.threadId },
-        data: { updatedAt: new Date() },
-      })
-      const others = await prisma.threadParticipant.findMany({
-        where: { threadId: data.threadId, userId: { not: userId } },
-      })
-      for (const o of others) {
-        await prisma.threadParticipant.update({
-          where: { id: o.id },
-          data: { unread: { increment: 1 } },
-        })
-        io.to(`user:${o.userId}`).emit('message:new', {
-          threadId: data.threadId,
-          message: { ...msg, sender: toPublicUser(msg.sender) },
-        })
-      }
-      socket.emit('message:sent', { ...msg, sender: toPublicUser(msg.sender) })
-    })
+    // Same rules as POST /api/messages/threads/:id; the HTTP path is what the web client uses.
+    socket.on(
+      'message:send',
+      async (
+        data: { threadId?: unknown; content?: unknown; replyToId?: unknown },
+        ack?: (res: { ok: boolean; message?: unknown; error?: string }) => void,
+      ) => {
+        const reply = typeof ack === 'function' ? ack : undefined
+        try {
+          const content = typeof data?.content === 'string' ? data.content.trim() : ''
+          if (typeof data?.threadId !== 'string' || !content || content.length > MAX_MESSAGE_LENGTH) {
+            throw new HttpError(400, 'Invalid message')
+          }
+          const message = await createMessage({
+            threadId: data.threadId,
+            senderId: userId,
+            content,
+            replyToId: typeof data.replyToId === 'string' ? data.replyToId : null,
+          })
+          socket.emit('message:sent', message)
+          reply?.({ ok: true, message })
+        } catch (e) {
+          // Never let a rejected handler escape: unhandled rejections crash the process.
+          const error = e instanceof HttpError ? e.message : 'Could not send message'
+          if (!(e instanceof HttpError)) console.error(e)
+          socket.emit('message:error', { error })
+          reply?.({ ok: false, error })
+        }
+      },
+    )
 
     socket.on('typing', (data: { threadId: string }) => {
       socket.to(`thread:${data.threadId}`).emit('typing', { userId, threadId: data.threadId })

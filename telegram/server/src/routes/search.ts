@@ -31,7 +31,15 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
     )
   }
   if (type === 'all' || type === 'messages') {
-    const msgs = await prisma.message.findMany({ take: 30 })
+    // Only chats the user is in, minus messages they deleted for themselves.
+    const msgs = await prisma.message.findMany({
+      where: {
+        thread: { participants: { some: { userId: req.userId! } } },
+        hiddenFor: { none: { userId: req.userId! } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    })
     result.messages = msgs.filter((m) => contains(m.content)).map((m) => ({ id: m.id, content: m.content }))
   }
   res.json(result)

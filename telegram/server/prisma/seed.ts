@@ -8,6 +8,7 @@ async function main() {
   await prisma.report.deleteMany()
   await prisma.feedback.deleteMany()
   await prisma.notification.deleteMany()
+  await prisma.messageHidden.deleteMany()
   await prisma.message.deleteMany()
   await prisma.threadParticipant.deleteMany()
   await prisma.thread.deleteMany()
@@ -58,19 +59,29 @@ async function main() {
     ],
   })
 
+  const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000)
+  const name = (u: { displayName: string; firstName: string }) => u.displayName || u.firstName
+
+  // Alex ↔ Sarah: a reply chain plus an edited message. The opener is 3 days old, so it is
+  // past Telegram's 48h edit window (handy for trying the "can't edit" path).
   const dmThread = await prisma.thread.create({
-    data: {
-      participants: { create: [{ userId: alex.id }, { userId: sarah.id }] },
-      messages: {
-        create: [
-          { senderId: sarah.id, content: 'Hey Alex! Did you see the channel update?' },
-          { senderId: alex.id, content: 'Yes — subscribing now 👍' },
-          { senderId: sarah.id, content: 'Great. Let me know if you want the group invite.' },
-        ],
-      },
-    },
+    data: { participants: { create: [{ userId: alex.id }, { userId: sarah.id }] } },
   })
-  void dmThread
+  const say = (threadId: string, senderId: string, content: string, at: Date, extra: Record<string, unknown> = {}) =>
+    prisma.message.create({ data: { threadId, senderId, content, createdAt: at, read: true, ...extra } })
+
+  await say(dmThread.id, alex.id, 'Morning! Are we still on for the release review?', minutesAgo(3 * 24 * 60))
+  const channelQ = await say(dmThread.id, sarah.id, 'Hey Alex! Did you see the channel update?', minutesAgo(95))
+  const subscribed = await say(dmThread.id, alex.id, 'Yes — subscribing now 👍', minutesAgo(93), { replyToId: channelQ.id })
+  await say(dmThread.id, sarah.id, 'Great. Let me know if you want the group invite.', minutesAgo(90), { replyToId: subscribed.id })
+  await say(dmThread.id, alex.id, 'Sure, send it over — I can join the standup tomorrow at 10:00.', minutesAgo(60), {
+    editedAt: minutesAgo(55),
+  })
+  await say(dmThread.id, sarah.id, 'Done! Check your invites 🙌', minutesAgo(20), { read: false })
+  await prisma.threadParticipant.update({
+    where: { threadId_userId: { threadId: dmThread.id, userId: alex.id } },
+    data: { unread: 1 },
+  })
 
   const groupThread = await prisma.thread.create({
     data: {
@@ -78,14 +89,42 @@ async function main() {
       name: 'Dev Team Chat',
       avatarUrl: 'https://picsum.photos/seed/tggrp/200/200',
       participants: { create: created.map((u) => ({ userId: u.id })) },
-      messages: {
-        create: [
-          { senderId: mike.id, content: 'Welcome everyone to the group!' },
-          { senderId: emma.id, content: 'Thanks Mike 🎉' },
-        ],
-      },
     },
   })
+  const welcome = await say(groupThread.id, mike.id, 'Welcome everyone to the group!', minutesAgo(240))
+  await say(groupThread.id, emma.id, 'Thanks Mike 🎉', minutesAgo(235), { replyToId: welcome.id })
+  // David replies to a message Mike later deleted for everyone → the quote reads "Deleted message".
+  const oops = await say(groupThread.id, mike.id, 'Staging password is hunter2', minutesAgo(180))
+  await say(groupThread.id, david.id, 'Mike, you might want to delete that 😅', minutesAgo(178), { replyToId: oops.id })
+  await prisma.$transaction([
+    prisma.message.updateMany({ where: { replyToId: oops.id }, data: { replyToDeleted: true } }),
+    prisma.message.delete({ where: { id: oops.id } }),
+  ])
+  await say(groupThread.id, mike.id, 'Done, thanks! Rotated it too.', minutesAgo(175))
+  // Forwarded from the DM above: the copy keeps Sarah as the original author and date.
+  await say(groupThread.id, alex.id, channelQ.content, minutesAgo(30), {
+    forwardedFromId: sarah.id,
+    forwardedFromName: name(sarah),
+    forwardedDate: channelQ.createdAt,
+  })
+  await say(groupThread.id, emma.id, 'Ha, yes — the channel update was great.', minutesAgo(28))
+
+  // Alex ↔ Mike: Mike forwarded one of Alex's own messages back with a question.
+  const mikeThread = await prisma.thread.create({
+    data: { participants: { create: [{ userId: alex.id }, { userId: mike.id }] } },
+  })
+  await say(mikeThread.id, mike.id, subscribed.content, minutesAgo(45), {
+    forwardedFromId: alex.id,
+    forwardedFromName: name(alex),
+    forwardedDate: subscribed.createdAt,
+  })
+  await say(mikeThread.id, mike.id, 'Which channel was this about?', minutesAgo(44))
+  await say(mikeThread.id, alex.id, 'Tech News Daily — the launch post.', minutesAgo(40))
+
+  // Most recent activity first in the chat list.
+  await prisma.thread.update({ where: { id: groupThread.id }, data: { updatedAt: minutesAgo(28) } })
+  await prisma.thread.update({ where: { id: mikeThread.id }, data: { updatedAt: minutesAgo(40) } })
+  await prisma.thread.update({ where: { id: dmThread.id }, data: { updatedAt: minutesAgo(20) } })
 
   await prisma.group.create({
     data: {

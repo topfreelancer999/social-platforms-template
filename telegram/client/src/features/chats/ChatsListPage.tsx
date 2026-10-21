@@ -3,19 +3,12 @@ import { useQuery } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { rel } from '@/lib/format'
-
-type ThreadItem = {
-  id: string
-  title: string
-  avatarUrl?: string | null
-  unread: number
-  isGroup?: boolean
-  lastMessage?: { content: string; createdAt: string }
-}
+import type { ThreadItem } from './types'
 
 export function ChatsListPage() {
   const token = useAuthStore((s) => s.accessToken)
-  const { data } = useQuery({
+  const userId = useAuthStore((s) => s.user?.id)
+  const { data, isLoading } = useQuery({
     queryKey: ['threads'],
     queryFn: () => api<ThreadItem[]>('/messages/threads', { headers: authHeaders(token!) }),
     enabled: !!token,
@@ -44,6 +37,8 @@ export function ChatsListPage() {
               </div>
               <p className="truncate text-sm text-[var(--tg-muted)]">
                 {t.isGroup && '👥 '}
+                {t.lastMessage?.senderId === userId && <span className="text-[var(--tg-blue)]">You: </span>}
+                {t.lastMessage?.forwarded && '↪ '}
                 {t.lastMessage?.content ?? 'No messages'}
               </p>
             </div>
@@ -55,7 +50,8 @@ export function ChatsListPage() {
           </Link>
         </li>
       ))}
-      {!data?.length && <p className="p-6 text-center text-sm text-[var(--tg-muted)]">No chats yet</p>}
+      {isLoading && <p className="p-6 text-center text-sm text-[var(--tg-muted)]">Loading chats…</p>}
+      {!isLoading && !data?.length && <p className="p-6 text-center text-sm text-[var(--tg-muted)]">No chats yet</p>}
     </ul>
   )
 }

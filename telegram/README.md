@@ -34,6 +34,7 @@ Optional Redis: `docker compose up -d` (port **6392**).
 | Channels | Subscribe to broadcast post channels |
 | Contacts | Add and browse contacts |
 | Messaging | Real-time message delivery |
+| Message actions | Right-click / long-press / ⋮ menu: reply (quote + jump to original), edit own text within 48h ("edited", ↑ edits last), copy, forward to one or more chats ("Forwarded from …", optional hide sender), multi-select, delete for me or for everyone (own messages; any message for group admins) — all live over Socket.io |
 | Search | Users, channels, groups, messages |
 | Profile | @username, online status, phone |
 | Settings | Privacy, last seen, phone visibility |
