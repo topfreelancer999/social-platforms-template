@@ -1,10 +1,13 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Home, Plus, MessageCircle, Bell, Search } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { Toaster } from '@/components/ui/Toaster'
+import { useLiveVotes } from '@/features/votes/useLiveVotes'
 
 export function RedditLayout() {
   const user = useAuthStore((s) => s.user)
   const loc = useLocation()
+  useLiveVotes()
 
   return (
     <div className="min-h-screen bg-rd-bg">
@@ -20,11 +23,11 @@ export function RedditLayout() {
               const q = new FormData(e.currentTarget).get('q') as string
               if (q) window.location.href = `/search?q=${encodeURIComponent(q)}`
             }}
-            className="flex-1 max-w-xl"
+            className="flex-1 min-w-0 max-w-xl"
           >
             <div className="flex items-center bg-rd-bg border border-rd-border rounded-full px-4 py-1.5">
               <Search size={18} className="text-rd-muted mr-2" />
-              <input name="q" placeholder="Search Reddit" className="flex-1 bg-transparent text-sm outline-none" />
+              <input name="q" placeholder="Search Reddit" className="flex-1 min-w-0 bg-transparent text-sm outline-none" />
             </div>
           </form>
           <div className="flex items-center gap-3 shrink-0">
@@ -60,6 +63,7 @@ export function RedditLayout() {
           <Outlet />
         </main>
       </div>
+      <Toaster />
     </div>
   )
 }

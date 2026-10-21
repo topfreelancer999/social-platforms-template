@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
-import { enrichPost } from '../services/posts.js'
+import { findPosts } from '../services/posts.js'
 
 export const searchRouter = Router()
 searchRouter.use(requireAuth)
@@ -16,13 +16,8 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
   const result: Record<string, unknown> = {}
 
   if (type === 'all' || type === 'posts') {
-    const posts = await prisma.post.findMany({ take: 40 })
-    const matched = []
-    for (const p of posts.filter((x) => contains(x.title) || contains(x.body))) {
-      const e = await enrichPost(p.id, req.userId!)
-      if (e) matched.push(e)
-    }
-    result.posts = matched
+    const posts = await findPosts(req.userId!, { take: 40 })
+    result.posts = posts.filter((x) => contains(x.title) || contains(x.body))
   }
   if (type === 'all' || type === 'subreddits') {
     result.subreddits = (await prisma.subreddit.findMany()).filter(

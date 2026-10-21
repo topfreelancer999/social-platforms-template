@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { PostCard, type RedditPost } from '@/components/posts/PostCard'
+import { formatScore } from '@/lib/format'
 
 export function SearchPage() {
   const [params] = useSearchParams()
@@ -47,8 +48,11 @@ export function SearchPage() {
           </Link>
         ))}
       {tab === 'users' && Array.isArray(data?.users) &&
-        (data.users as { username: string }[]).map((u) => (
-          <Link key={u.username} to={`/profile/${u.username}`} className="block py-2 text-sm font-semibold">u/{u.username}</Link>
+        (data.users as { username: string; karma: number }[]).map((u) => (
+          <Link key={u.username} to={`/profile/${u.username}`} className="block py-2 text-sm">
+            <span className="font-semibold">u/{u.username}</span>
+            <span className="text-rd-muted"> · {formatScore(u.karma)} karma</span>
+          </Link>
         ))}
       {tab === 'groups' && Array.isArray(data?.groups) &&
         (data.groups as { id: string; name: string }[]).map((g) => (

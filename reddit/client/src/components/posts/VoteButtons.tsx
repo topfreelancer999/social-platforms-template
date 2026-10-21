@@ -1,35 +1,66 @@
-import { ChevronUp, ChevronDown } from 'lucide-react'
+import { ArrowBigDown, ArrowBigUp } from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { formatScore } from '@/lib/format'
+import { useVote } from '@/features/votes/useVote'
+import type { Votable, VoteKind } from '@/features/votes/voteCache'
 
+/**
+ * Reddit up/down arrows with the score between them. Upvoted is orange-red,
+ * downvoted periwinkle; the score takes the color of your vote.
+ */
 export function VoteButtons({
-  score,
-  myVote,
-  onVote,
+  kind,
+  target,
   layout = 'vertical',
 }: {
-  score: number
-  myVote: number
-  onVote: (v: 1 | -1) => void
+  kind: VoteKind
+  target: Votable
   layout?: 'vertical' | 'horizontal'
 }) {
-  const up = myVote === 1
-  const down = myVote === -1
-  if (layout === 'horizontal') {
-    return (
-      <div className="flex items-center gap-1 text-sm font-semibold text-rd-muted">
-        <button type="button" onClick={() => onVote(1)} className={up ? 'text-rd-orange' : 'hover:text-rd-orange'}><ChevronUp size={20} /></button>
-        <span className={score > 0 ? 'text-rd-orange' : score < 0 ? 'text-rd-blue' : ''}>{score}</span>
-        <button type="button" onClick={() => onVote(-1)} className={down ? 'text-rd-blue' : 'hover:text-rd-blue'}><ChevronDown size={20} /></button>
-      </div>
-    )
-  }
+  const { vote } = useVote(kind, target)
+  const up = target.myVote === 1
+  const down = target.myVote === -1
+  const vertical = layout === 'vertical'
+  const iconSize = vertical ? 22 : 20
+  const arrow = 'p-1 rounded-sm text-rd-muted outline-none focus-visible:ring-2 focus-visible:ring-rd-blue'
+
   return (
-    <div className="flex flex-col items-center text-xs font-semibold text-rd-muted w-10 shrink-0">
-      <button type="button" onClick={() => onVote(1)} className={`p-1 rounded hover:bg-rd-bg ${up ? 'text-rd-orange' : ''}`}>
-        <ChevronUp size={22} />
+    <div
+      role="group"
+      aria-label={kind === 'post' ? 'Vote on post' : 'Vote on comment'}
+      className={cn(
+        'flex items-center text-xs font-bold select-none',
+        vertical ? 'flex-col w-10 shrink-0 py-2 bg-rd-rail' : 'gap-0.5',
+      )}
+    >
+      <button
+        type="button"
+        aria-label="Upvote"
+        aria-pressed={up}
+        onClick={() => vote(1)}
+        className={cn(arrow, 'hover:bg-rd-upvote-soft hover:text-rd-upvote', up && 'text-rd-upvote')}
+      >
+        <ArrowBigUp size={iconSize} fill={up ? 'currentColor' : 'none'} strokeWidth={1.75} />
       </button>
-      <span className={`py-0.5 ${score > 0 ? 'text-rd-orange' : score < 0 ? 'text-rd-blue' : ''}`}>{score}</span>
-      <button type="button" onClick={() => onVote(-1)} className={`p-1 rounded hover:bg-rd-bg ${down ? 'text-rd-blue' : ''}`}>
-        <ChevronDown size={22} />
+      <span
+        className={cn(
+          'tabular-nums text-center',
+          vertical ? 'py-0.5 min-w-8' : 'min-w-6 px-0.5',
+          up ? 'text-rd-upvote' : down ? 'text-rd-downvote' : 'text-rd-text',
+        )}
+        title={`${target.score.toLocaleString()} points`}
+      >
+        <span aria-hidden="true">{target.score === 0 && !up && !down ? 'Vote' : formatScore(target.score)}</span>
+        <span className="sr-only">{`${target.score.toLocaleString()} points`}</span>
+      </span>
+      <button
+        type="button"
+        aria-label="Downvote"
+        aria-pressed={down}
+        onClick={() => vote(-1)}
+        className={cn(arrow, 'hover:bg-rd-downvote-soft hover:text-rd-downvote', down && 'text-rd-downvote')}
+      >
+        <ArrowBigDown size={iconSize} fill={down ? 'currentColor' : 'none'} strokeWidth={1.75} />
       </button>
     </div>
   )

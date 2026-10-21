@@ -31,7 +31,11 @@ model User {
   firstName    String
   lastName     String
   bio          String   @default("")
-  karma        Int      @default(0)
+  // Reddit-style karma, denormalized from votes cast by *other* users on this
+  // user's posts and comments (self-votes never count). Kept in sync by the
+  // vote service inside the same transaction as the vote row.
+  postKarma    Int      @default(0)
+  commentKarma Int      @default(0)
   avatarUrl    String
   coverUrl     String
   createdAt    DateTime @default(now())
@@ -98,23 +102,32 @@ model Post {
   body        String   @default("")
   imageUrl    String?
   linkUrl     String?
+  // Denormalized vote totals (score = upvotes - downvotes), updated with each vote.
+  score       Int      @default(0)
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
   createdAt   DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   subreddit   Subreddit @relation(fields: [subredditId], references: [id], onDelete: Cascade)
   votes       PostVote[]
   comments    Comment[]
+
+  @@index([score])
+  @@index([subredditId, score])
 }
 
 model PostVote {
   id        String   @id @default(cuid())
   postId    String
   userId    String
-  value     Int
+  value     Int // 1 = upvote, -1 = downvote (no row = no vote)
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
+  @@index([userId, value])
 }
 
 model Comment {
@@ -123,20 +136,27 @@ model Comment {
   authorId  String
   parentId  String?
   content   String
+  score     Int           @default(0)
+  upvotes   Int           @default(0)
+  downvotes Int           @default(0)
   createdAt DateTime      @default(now())
   post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Comment[]     @relation("CommentReplies")
   votes     CommentVote[]
+
+  @@index([postId])
+  @@index([authorId])
 }
 
 model CommentVote {
   id        String   @id @default(cuid())
   commentId String
   userId    String
-  value     Int
+  value     Int // 1 = upvote, -1 = downvote (no row = no vote)
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

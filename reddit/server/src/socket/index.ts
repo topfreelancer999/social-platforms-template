@@ -6,6 +6,7 @@ import { config } from '../config.js'
 import { verifyAccessToken } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
 import { toPublicUser } from '../lib/user.js'
+import { rooms, setRealtime } from '../lib/realtime.js'
 
 export async function setupSocket(httpServer: HttpServer) {
   const io = new Server(httpServer, {
@@ -37,9 +38,19 @@ export async function setupSocket(httpServer: HttpServer) {
 
   io.on('connection', (socket) => {
     const userId = socket.data.userId as string
-    socket.join(`user:${userId}`)
+    socket.join(rooms.user(userId))
 
     socket.on('message:send', async (data: { threadId: string; content: string }) => {
+      // Async listeners must not reject: an unhandled rejection crashes Node.
+      try {
+        await sendMessage(data)
+      } catch (e) {
+        console.error('message:send failed', e)
+        socket.emit('message:error', { threadId: data?.threadId })
+      }
+    })
+
+    async function sendMessage(data: { threadId: string; content: string }) {
       const msg = await prisma.message.create({
         data: { threadId: data.threadId, senderId: userId, content: data.content },
         include: { sender: true },
@@ -62,7 +73,7 @@ export async function setupSocket(httpServer: HttpServer) {
         })
       }
       socket.emit('message:sent', { ...msg, sender: toPublicUser(msg.sender) })
-    })
+    }
 
     socket.on('typing', (data: { threadId: string }) => {
       socket.to(`thread:${data.threadId}`).emit('typing', { userId, threadId: data.threadId })
@@ -71,7 +82,16 @@ export async function setupSocket(httpServer: HttpServer) {
     socket.on('thread:join', (threadId: string) => {
       socket.join(`thread:${threadId}`)
     })
+
+    // Live vote scores for a post page and its comments.
+    socket.on('post:watch', (postId: unknown) => {
+      if (typeof postId === 'string' && postId.length <= 64) socket.join(rooms.post(postId))
+    })
+    socket.on('post:unwatch', (postId: unknown) => {
+      if (typeof postId === 'string') socket.leave(rooms.post(postId))
+    })
   })
 
+  setRealtime(io)
   return io
 }

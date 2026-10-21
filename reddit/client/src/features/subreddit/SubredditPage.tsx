@@ -1,14 +1,17 @@
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { PostCard, type RedditPost } from '@/components/posts/PostCard'
 import { Button } from '@/components/ui/Button'
+import { SortTabs, type PostSort } from '@/components/posts/SortTabs'
 
 export function SubredditPage() {
   const { slug } = useParams()
   const token = useAuthStore((s) => s.accessToken)
   const qc = useQueryClient()
+  const [sort, setSort] = useState<PostSort>('hot')
   const { data: sub } = useQuery({
     queryKey: ['subreddit-meta', slug],
     queryFn: () => api<{ subreddit: { name: string; description: string; bannerUrl: string; iconUrl: string; memberCount: number; isMember: boolean } }>(
@@ -17,9 +20,9 @@ export function SubredditPage() {
     ),
     enabled: !!slug && !!token,
   })
-  const { data: feed } = useQuery({
-    queryKey: ['subreddit', slug],
-    queryFn: () => api<{ posts: RedditPost[] }>(`/posts/subreddit/${slug}`, { headers: authHeaders(token!) }),
+  const { data: feed, isLoading, isError } = useQuery({
+    queryKey: ['subreddit', slug, sort],
+    queryFn: () => api<{ posts: RedditPost[] }>(`/posts/subreddit/${slug}?sort=${sort}`, { headers: authHeaders(token!) }),
     enabled: !!slug && !!token,
   })
   const join = useMutation({
@@ -46,7 +49,11 @@ export function SubredditPage() {
         </div>
       )}
       <Link to={`/submit?subreddit=${slug}`} className="block mb-3 text-sm font-semibold text-rd-blue">Create Post</Link>
+      <SortTabs value={sort} onChange={setSort} />
+      {isLoading && <p className="text-rd-muted text-center py-8">Loading...</p>}
+      {isError && <p className="text-rd-muted text-center py-8 text-sm">Couldn't load posts.</p>}
       {feed?.posts.map((p) => <PostCard key={p.id} post={p} />)}
+      {feed?.posts.length === 0 && <p className="text-rd-muted text-center py-8 text-sm">No posts yet</p>}
     </div>
   )
 }

@@ -9,6 +9,12 @@
   --color-rd-border: #ccc;
   --color-rd-text: #1a1a1b;
   --color-rd-muted: #787c7e;
+  /* Vote colors: orange-red upvote, periwinkle downvote. */
+  --color-rd-upvote: #ff4500;
+  --color-rd-downvote: #7193ff;
+  --color-rd-upvote-soft: #ffe5dc;
+  --color-rd-downvote-soft: #e6ebff;
+  --color-rd-rail: #f8f9fa;
   --color-fb-primary: #ff4500;
   --color-fb-primary-hover: #e03d00;
   --color-fb-bg: #dae0e6;
