@@ -23,6 +23,7 @@ import { PageDetailPage } from '@/features/pages/PageDetailPage'
 import { FeedbackPage } from '@/features/feedback/FeedbackPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { EventsPage } from '@/features/events/EventsPage'
+import { SendSnapPage } from '@/features/snaps/SendSnapPage'
 
 function Private({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
@@ -58,6 +59,7 @@ export function AppRouter() {
         <Route path="map" element={<MapPage />} />
         <Route path="chat" element={<ChatsPage />} />
         <Route path="chat/:threadId" element={<ChatPage />} />
+        <Route path="snap/new" element={<SendSnapPage />} />
         <Route path="story/:username" element={<StoryViewerPage />} />
         <Route path="channels/:slug" element={<ChannelPage />} />
         <Route path="friends" element={<FriendsPage />} />

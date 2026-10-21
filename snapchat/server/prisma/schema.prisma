@@ -13,6 +13,11 @@ enum SnapType {
   SPOTLIGHT
 }
 
+enum DirectSnapKind {
+  PHOTO
+  TEXT
+}
+
 enum FriendshipStatus {
   PENDING
   ACCEPTED
@@ -63,6 +68,10 @@ model User {
   reviews             Review[]
   feedbacks           Feedback[]
   reports             Report[]
+  sentDirectSnaps     DirectSnap[]      @relation("DirectSnapSender")
+  receivedDirectSnaps DirectSnap[]      @relation("DirectSnapRecipient")
+  streaksAsA          Streak[]          @relation("StreakUserA")
+  streaksAsB          Streak[]          @relation("StreakUserB")
 }
 
 model UserSettings {
@@ -110,6 +119,45 @@ model SnapView {
   viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
 
   @@unique([snapId, viewerId])
+}
+
+/// A Snap sent privately to one friend. View-once: the content is wiped when the recipient opens it.
+model DirectSnap {
+  id          String         @id @default(cuid())
+  senderId    String
+  recipientId String
+  kind        DirectSnapKind
+  imageUrl    String?
+  text        String         @default("")
+  color       String?
+  createdAt   DateTime       @default(now())
+  openedAt    DateTime?
+  sender      User           @relation("DirectSnapSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User           @relation("DirectSnapRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, recipientId, createdAt])
+  @@index([recipientId, openedAt])
+}
+
+/// Snapstreak state for one friend pair (userAId < userBId). Rules live in src/lib/streaks.ts.
+model Streak {
+  id         String   @id @default(cuid())
+  userAId    String
+  userBId    String
+  /// Anchor of the streak's 24h days: day k = [startedAt + k*24h, startedAt + (k+1)*24h).
+  startedAt  DateTime
+  /// Consecutive days (0..count-1) in which both users snapped each other.
+  count      Int      @default(0)
+  /// Last day index in which each user snapped the other (-1 = not yet).
+  userADay   Int      @default(-1)
+  userBDay   Int      @default(-1)
+  lastSnapAt DateTime
+  updatedAt  DateTime @updatedAt
+  userA      User     @relation("StreakUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB      User     @relation("StreakUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
 }
 
 model Channel {

@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { Camera, Compass, MessageCircle, MapPin, User } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
+import { useSnapRealtime } from '@/lib/snaps'
 
 const nav = [
   { to: '/map', icon: MapPin, label: 'Map' },
@@ -13,6 +14,7 @@ const nav = [
 
 export function SnapchatLayout() {
   const user = useAuthStore((s) => s.user)
+  useSnapRealtime()
 
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">

@@ -1,8 +1,11 @@
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
+import { StreakBadge } from '@/components/ui/StreakBadge'
+import type { Streak } from '@/lib/snaps'
 
 export function FriendsPage() {
   const qc = useQueryClient()
@@ -10,7 +13,7 @@ export function FriendsPage() {
   const { data: friends } = useQuery({
     queryKey: ['friends'],
     queryFn: () =>
-      api<{ friends: { id: string; username: string; avatarUrl: string; displayName?: string }[] }>('/friends', {
+      api<{ friends: { id: string; username: string; avatarUrl: string; displayName?: string; streak: Streak | null }[] }>('/friends', {
         headers: authHeaders(token!),
       }),
     enabled: !!token,
@@ -61,12 +64,17 @@ export function FriendsPage() {
 
       <ul className="space-y-2">
         {(friends?.friends ?? []).map((f) => (
-          <li key={f.id} className="flex items-center gap-3 rounded-xl bg-white/10 p-3">
-            <Avatar src={f.avatarUrl} alt={f.username} />
-            <div>
-              <p className="font-medium">{f.displayName || f.username}</p>
-              <p className="text-sm text-white/50">@{f.username}</p>
-            </div>
+          <li key={f.id}>
+            <Link to={`/profile/${f.username}`} className="flex items-center gap-3 rounded-xl bg-white/10 p-3 hover:bg-white/15">
+              <Avatar src={f.avatarUrl} alt={f.username} />
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 font-medium">
+                  <span className="truncate">{f.displayName || f.username}</span>
+                  <StreakBadge streak={f.streak} />
+                </p>
+                <p className="text-sm text-white/50">@{f.username}</p>
+              </div>
+            </Link>
           </li>
         ))}
       </ul>

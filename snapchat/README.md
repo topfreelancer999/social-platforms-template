@@ -33,6 +33,7 @@ cd .. && npm run dev
 | Discover | Subscribe to post channels |
 | Friends | Add, accept requests, list |
 | Chat | DMs with Socket.io real-time |
+| Snaps & Snapstreaks | Send photo / colored text Snaps to friends (view-once, opened from the Chat list with New Snap / Delivered / Opened / Received statuses). 🔥 + count once both friends snapped each other 3 days in a row, ⌛ when ≤ 4h remain, 💯 on day 100; Friendship Profile shows the streak and its start date. Rules: `server/src/lib/streaks.ts` |
 | Groups | Join public/private groups |
 | Search | Users, channels, groups, snaps |
 | Profile | Snap score, bitmoji, edit |

@@ -4,6 +4,7 @@ import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { param } from '../lib/params.js'
+import { streaksFor } from '../lib/streaks.js'
 
 export const messagesRouter = Router()
 messagesRouter.use(requireAuth)
@@ -27,6 +28,102 @@ function threadPreview(
     lastMessage: last,
   }
 }
+
+type SnapStatus = 'NEW_SNAP' | 'RECEIVED' | 'DELIVERED' | 'OPENED'
+
+/**
+ * Snapchat-style chat list: one row per friend with the Snap status, the 1:1 thread preview and
+ * the live streak. "New Snap" wins over everything; otherwise the most recent snap decides.
+ */
+messagesRouter.get('/inbox', async (req: AuthRequest, res) => {
+  const userId = req.userId!
+  const now = new Date()
+  const friendships = await prisma.friendship.findMany({
+    where: { status: 'ACCEPTED', OR: [{ senderId: userId }, { receiverId: userId }] },
+    include: { sender: true, receiver: true },
+  })
+  const friends = friendships.map((f) => (f.senderId === userId ? f.receiver : f.sender))
+  const friendIds = friends.map((f) => f.id)
+
+  const [streaks, unopened, threads] = await Promise.all([
+    streaksFor(prisma, userId, now),
+    prisma.directSnap.findMany({
+      where: { recipientId: userId, openedAt: null, senderId: { in: friendIds } },
+      select: { id: true, senderId: true, kind: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.threadParticipant.findMany({
+      where: { userId, thread: { isGroup: false } },
+      include: {
+        thread: {
+          include: {
+            participants: { select: { userId: true } },
+            messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+          },
+        },
+      },
+    }),
+  ])
+  // Latest snap in either direction, per friend (small N: one indexed lookup each).
+  const latest = await Promise.all(
+    friendIds.map((id) =>
+      prisma.directSnap.findFirst({
+        where: {
+          OR: [
+            { senderId: userId, recipientId: id },
+            { senderId: id, recipientId: userId },
+          ],
+        },
+        select: { id: true, senderId: true, kind: true, createdAt: true, openedAt: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ),
+  )
+
+  const chats = friends.map((friend, i) => {
+    const newSnaps = unopened.filter((s) => s.senderId === friend.id)
+    const last = latest[i]
+    let snap: { id: string; status: SnapStatus; kind: string; at: Date; count: number } | null = null
+    if (newSnaps.length) {
+      const oldest = newSnaps[0]
+      snap = { id: oldest.id, status: 'NEW_SNAP', kind: oldest.kind, at: newSnaps[newSnaps.length - 1].createdAt, count: newSnaps.length }
+    } else if (last) {
+      const mine = last.senderId === userId
+      const status: SnapStatus = mine ? (last.openedAt ? 'OPENED' : 'DELIVERED') : 'RECEIVED'
+      snap = { id: last.id, status, kind: last.kind, at: last.openedAt ?? last.createdAt, count: 0 }
+    }
+    const tp = threads.find(
+      (t) => t.thread.participants.length === 2 && t.thread.participants.some((p) => p.userId === friend.id),
+    )
+    const msg = tp?.thread.messages[0]
+    const lastMessage = msg ? { content: msg.content, createdAt: msg.createdAt, fromMe: msg.senderId === userId } : null
+    const updatedAt = [snap?.at, msg?.createdAt].reduce<Date>(
+      (a, b) => (b && b > a ? b : a),
+      new Date(0),
+    )
+    return {
+      friend: {
+        id: friend.id,
+        username: friend.username,
+        displayName: friend.displayName || friend.firstName,
+        avatarUrl: friend.avatarUrl,
+      },
+      threadId: tp?.threadId ?? null,
+      unread: tp?.unread ?? 0,
+      lastMessage,
+      snap,
+      streak: streaks.get(friend.id) ?? null,
+      updatedAt,
+    }
+  })
+  chats.sort((a, b) => {
+    // Unopened Snaps first, then most recent activity.
+    const an = a.snap?.status === 'NEW_SNAP' ? 1 : 0
+    const bn = b.snap?.status === 'NEW_SNAP' ? 1 : 0
+    return bn - an || b.updatedAt.getTime() - a.updatedAt.getTime()
+  })
+  res.json({ chats })
+})
 
 messagesRouter.get('/threads', async (req: AuthRequest, res) => {
   const userId = req.userId!

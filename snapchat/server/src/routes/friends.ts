@@ -5,6 +5,7 @@ import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { param } from '../lib/params.js'
+import { streaksFor } from '../lib/streaks.js'
 
 export const friendsRouter = Router()
 friendsRouter.use(requireAuth)
@@ -18,10 +19,11 @@ friendsRouter.get('/', async (req: AuthRequest, res) => {
     },
     include: { sender: true, receiver: true },
   })
+  const streaks = await streaksFor(prisma, userId)
   res.json({
     friends: rows.map((f) => {
       const u = f.senderId === userId ? f.receiver : f.sender
-      return { ...toPublicUser(u), friendshipId: f.id }
+      return { ...toPublicUser(u), friendshipId: f.id, streak: streaks.get(u.id) ?? null }
     }),
   })
 })

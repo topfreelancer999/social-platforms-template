@@ -6,6 +6,7 @@
   --sc-gray: #f5f5f5;
   --sc-blue: #00b4ff;
   --sc-purple: #a855f7;
+  --sc-red: #f23c57;
 }
 
 body {
@@ -34,4 +35,19 @@ body {
   background: #3a3a3a;
   padding: 3px;
   border-radius: 50%;
+}
+
+/* View-once Snap timer bar (matches SNAP_SECONDS in SnapViewer). */
+@keyframes snap-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.snap-timer {
+  transform-origin: left;
+  animation: snap-timer 10s linear forwards;
 }

@@ -20,6 +20,9 @@ export function CameraPage() {
   const qc = useQueryClient()
   const token = useAuthStore((s) => s.accessToken)
 
+  // SNAP mode sends privately to friends (and counts towards Snapstreaks) via the Send Snap page.
+  const sendToFriends = () => navigate(`/snap/new?image=${encodeURIComponent(imageUrl)}`)
+
   const send = useMutation({
     mutationFn: () =>
       api('/snaps', {
@@ -79,9 +82,9 @@ export function CameraPage() {
         <Button
           className="w-full bg-[var(--sc-yellow)] text-black hover:opacity-90"
           disabled={send.isPending}
-          onClick={() => send.mutate()}
+          onClick={() => (mode === 'SNAP' ? sendToFriends() : send.mutate())}
         >
-          {send.isPending ? 'Sending…' : `Send ${mode}`}
+          {send.isPending ? 'Sending…' : mode === 'SNAP' ? 'Send to friends…' : `Send ${mode}`}
         </Button>
         <p className="text-center text-xs text-white/50">Demo: picks a preset image (no real camera)</p>
       </div>
