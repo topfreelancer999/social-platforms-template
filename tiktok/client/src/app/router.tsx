@@ -22,6 +22,7 @@ import { SettingsPage } from '@/features/settings/SettingsPage'
 import { EventsPage } from '@/features/events/EventsPage'
 import { HashtagPage } from '@/features/discover/HashtagPage'
 import { LivePage } from '@/features/live/LivePage'
+import { SoundPage } from '@/features/sounds/SoundPage'
 
 function Private({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
@@ -56,6 +57,7 @@ export function AppRouter() {
       <Route path="/profile/:username" element={<ProfileRedirect />} />
       <Route path="/video/:id" element={<Private><VideoDetailPage /></Private>} />
       <Route path="/hashtag/:tag" element={<HashtagPage />} />
+      <Route path="/sound/:id" element={<Private><SoundPage /></Private>} />
       <Route path="/channel" element={<Private><ChannelPage /></Private>} />
       <Route path="/friends" element={<Private><FriendsPage /></Private>} />
       <Route path="/follows" element={<Navigate to="/friends" replace />} />

@@ -4,6 +4,7 @@ import { toPublicUser } from '../lib/user.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { enrichVideo } from '../services/videos.js'
+import { serializeSound, soundInclude } from '../services/sounds.js'
 
 export const searchRouter = Router()
 searchRouter.use(requireAuth)
@@ -35,8 +36,8 @@ searchRouter.get('/', async (req: AuthRequest, res) => {
     result.hashtags = tags.filter((h) => contains(h.tag)).map((h) => ({ tag: h.tag }))
   }
   if (type === 'all' || type === 'sounds') {
-    const sounds = await prisma.sound.findMany({ take: 20 })
-    result.sounds = sounds.filter((s) => contains(s.title) || contains(s.artist))
+    const sounds = await prisma.sound.findMany({ take: 50, include: soundInclude(req.userId!) })
+    result.sounds = sounds.filter((s) => contains(s.title) || contains(s.artist)).slice(0, 20).map(serializeSound)
   }
   if (type === 'all' || type === 'groups') {
     const groups = await prisma.group.findMany()

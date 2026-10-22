@@ -12,5 +12,4 @@ export const REACTION_EMOJI: Record<string, string> = {
   ANGRY: '😠',
 }
 
-export const SAMPLE_VIDEO_URL =
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+export const SAMPLE_VIDEO_URL = 'https://media.w3.org/2010/05/sintel/trailer.mp4'

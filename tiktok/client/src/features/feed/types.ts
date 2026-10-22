@@ -22,7 +22,7 @@ export interface VideoItem {
   bookmarkCount?: number
   createdAt?: string
   author: VideoAuthor
-  sound?: { id?: string; title: string; artist: string; coverUrl?: string } | null
+  sound?: { id: string; title: string; artist: string; coverUrl?: string; isOriginal?: boolean } | null
   likeCount: number
   commentCount: number
   liked: boolean

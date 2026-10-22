@@ -2,16 +2,26 @@ import { FriendshipStatus, GroupPrivacy, NotificationType, PostPrivacy } from '@
 import bcrypt from 'bcryptjs'
 import { prisma } from '../src/lib/prisma.js'
 import { linkHashtags } from '../src/lib/hashtags.js'
+import { originalSoundTitle } from '../src/services/sounds.js'
 
 const pw = await bcrypt.hash('password', 10)
 
+// Public, range-request friendly sample clips (the old gtv-videos-bucket URLs now return 403).
 const SAMPLE_VIDEOS = [
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+  'https://media.w3.org/2010/05/sintel/trailer.mp4',
+  'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+  'https://media.w3.org/2010/05/bunny/trailer.mp4',
+  'https://test-videos.co.uk/vids/jellyfish/mp4/h264/360/Jellyfish_360_10s_1MB.mp4',
+  'https://media.w3.org/2010/05/bunny/movie.mp4',
+  'https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_4K.webm/Sintel_movie_4K.webm.480p.vp9.webm',
+]
+
+// Free example tracks that stream without auth or hotlink blocking (checked with curl).
+const LIBRARY_SOUNDS = [
+  { title: 'Midnight Drive', artist: 'SoundHelix', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', coverUrl: 'https://picsum.photos/seed/snd-midnight/300' },
+  { title: 'Sunset Loop', artist: 'SoundHelix', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', coverUrl: 'https://picsum.photos/seed/snd-sunset/300' },
+  { title: 'The Neverwritten Role Playing Game', artist: 'Kangaroo MusiQue', audioUrl: 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3', coverUrl: 'https://picsum.photos/seed/snd-kangaroo/300' },
+  { title: 'nbsp', artist: 'Sevish', audioUrl: 'https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3', coverUrl: 'https://picsum.photos/seed/snd-sevish/300' },
 ]
 
 const captions = [
@@ -40,6 +50,7 @@ async function main() {
   await prisma.videoLike.deleteMany()
   await prisma.videoComment.deleteMany()
   await prisma.video.deleteMany()
+  await prisma.soundFavorite.deleteMany()
   await prisma.sound.deleteMany()
   await prisma.share.deleteMany()
   await prisma.reaction.deleteMany()
@@ -83,11 +94,36 @@ async function main() {
 
   const [alex, sarah, mike, emma, david, nina, leo] = createdUsers
 
-  const sounds = await Promise.all([
-    prisma.sound.create({ data: { title: 'Original Sound - Alex', artist: 'alex-creates', audioUrl: '', coverUrl: 'https://picsum.photos/seed/s1/100' } }),
-    prisma.sound.create({ data: { title: 'Trending Beat 2026', artist: 'DJ Wave', audioUrl: '', coverUrl: 'https://picsum.photos/seed/s2/100', useCount: 1200 } }),
-    prisma.sound.create({ data: { title: 'Viral Dance', artist: 'sarah-dance', audioUrl: '', coverUrl: 'https://picsum.photos/seed/s3/100', useCount: 890 } }),
-  ])
+  // Original sounds come from a creator's own upload (audio = that video); library tracks are reused via "Use this sound".
+  const original = (user: (typeof createdUsers)[number], videoUrl: string) =>
+    prisma.sound.create({
+      data: {
+        title: originalSoundTitle(user),
+        artist: user.username,
+        audioUrl: videoUrl,
+        coverUrl: user.avatarUrl,
+        isOriginal: true,
+        authorId: user.id,
+      },
+    })
+  const [alexOriginal, sarahOriginal, ninaOriginal] = [
+    await original(alex, SAMPLE_VIDEOS[0]),
+    await original(sarah, SAMPLE_VIDEOS[2]),
+    await original(nina, SAMPLE_VIDEOS[4]),
+  ]
+  const library = []
+  for (const track of LIBRARY_SOUNDS) library.push(await prisma.sound.create({ data: track }))
+  // Order matters: video i uses sounds[(i + 2 * floor(i / 7)) % 7], so every sound backs 4 videos and each
+  // original sound's first video (i = 0, 1, 5) is by its own creator.
+  const sounds = [alexOriginal, sarahOriginal, library[0], library[1], library[2], ninaOriginal, library[3]]
+  await prisma.soundFavorite.createMany({
+    data: [
+      { userId: alex.id, soundId: library[0].id },
+      { userId: alex.id, soundId: ninaOriginal.id },
+      { userId: sarah.id, soundId: library[0].id },
+      { userId: mike.id, soundId: alexOriginal.id },
+    ],
+  })
 
   // Demo user (alex) follows sarah, mike and emma -> Following tab; david, nina and leo only reach alex via For You.
   for (const [follower, following] of [
@@ -103,13 +139,15 @@ async function main() {
   for (let i = 0; i < 28; i++) {
     const author = createdUsers[i % createdUsers.length]
     const engagement = [3, 0, 5, 1, 4, 2, 5, 1][i % 8] // deterministic but uneven
+    const sound = sounds[(i + 2 * Math.floor(i / 7)) % sounds.length]
     const video = await prisma.video.create({
       data: {
         authorId: author.id,
-        videoUrl: SAMPLE_VIDEOS[i % SAMPLE_VIDEOS.length],
+        // A creator's video with their own original sound is the source of that audio.
+        videoUrl: sound.authorId === author.id ? sound.audioUrl : SAMPLE_VIDEOS[i % SAMPLE_VIDEOS.length],
         coverUrl: `https://picsum.photos/seed/v${i}/400/700`,
         caption: captions[i % captions.length],
-        soundId: sounds[i % sounds.length].id,
+        soundId: sound.id,
         duration: 15 + (i % 30),
         viewCount: 800 + engagement * 2400 + i * 37,
         shareCount: engagement * 9 + (i % 4),

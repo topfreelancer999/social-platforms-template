@@ -47,7 +47,13 @@ export async function serializeVideos(videos: VideoWithRelations[], viewerId: st
     createdAt: video.createdAt,
     author: toVideoAuthor(video.author, followingSet.has(video.authorId)),
     sound: video.sound
-      ? { id: video.sound.id, title: video.sound.title, artist: video.sound.artist, coverUrl: video.sound.coverUrl }
+      ? {
+          id: video.sound.id,
+          title: video.sound.title,
+          artist: video.sound.artist,
+          coverUrl: video.sound.coverUrl,
+          isOriginal: video.sound.isOriginal,
+        }
       : null,
     likeCount: video._count.likes,
     commentCount: video._count.comments,

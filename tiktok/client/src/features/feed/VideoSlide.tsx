@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/lib/cn'
 import { compactCount } from '@/lib/format'
 import type { VideoItem } from './types'
+import { soundLabel } from '@/features/sounds/types'
 import { useFollowCreator, useRecordView, useShareVideo, useToggleBookmark, useToggleLike } from './useVideoFeed'
 
 /** A video must play on screen this long before it counts as a view. */
@@ -272,16 +273,18 @@ export function VideoSlide({ video, active, index }: { video: VideoItem; active:
             <Share2 size={28} />
           </RailButton>
           {video.sound && (
-            <div
-              className="tt-disc-spin mt-1 h-11 w-11 rounded-full border-[6px] border-neutral-800 bg-neutral-900 overflow-hidden"
-              title={`${video.sound.title} — ${video.sound.artist}`}
+            <Link
+              to={`/sound/${video.sound.id}`}
+              aria-label={`Sound: ${soundLabel(video.sound)}`}
+              title={soundLabel(video.sound)}
+              className="tt-disc-spin mt-1 flex h-11 w-11 items-center justify-center rounded-full border-[6px] border-neutral-800 bg-neutral-900 overflow-hidden"
             >
               {video.sound.coverUrl ? (
                 <img src={video.sound.coverUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <Music2 size={18} className="m-auto mt-1.5 text-white" />
+                <Music2 size={16} className="text-white" />
               )}
-            </div>
+            </Link>
           )}
         </div>
 
@@ -293,12 +296,21 @@ export function VideoSlide({ video, active, index }: { video: VideoItem; active:
           </Link>
           <Caption text={video.caption} />
           {video.sound && (
-            <p className="flex items-center gap-2 text-xs mt-2 opacity-90 max-w-[80%]">
+            <Link
+              to={`/sound/${video.sound.id}`}
+              className="mt-2 flex w-fit max-w-[70%] items-center gap-2 text-sm hover:underline"
+            >
               <Music2 size={14} className="shrink-0" />
-              <span className="truncate">
-                {video.sound.title} — {video.sound.artist}
+              {/* TikTok scrolls the sound name like a ticker; the text is doubled for a seamless loop. */}
+              <span className="tt-marquee w-40 sm:w-48">
+                <span className="tt-marquee-track">
+                  <span className="pr-10">{soundLabel(video.sound)}</span>
+                  <span className="pr-10" aria-hidden>
+                    {soundLabel(video.sound)}
+                  </span>
+                </span>
               </span>
-            </p>
+            </Link>
           )}
         </div>
 

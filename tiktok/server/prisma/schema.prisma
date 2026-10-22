@@ -84,6 +84,8 @@ model User {
   reviews            Review[]
   feedbacks          Feedback[]
   reports            Report[]
+  sounds             Sound[]        @relation("SoundAuthor")
+  soundFavorites     SoundFavorite[]
 }
 
 model UserSettings {
@@ -99,15 +101,36 @@ model UserSettings {
   autoplayVideos     Boolean @default(true)
 }
 
+/// A sound is either an "original sound" extracted from a creator's upload, or a track reused via "Use this sound".
 model Sound {
+  id         String          @id @default(cuid())
+  title      String
+  artist     String
+  audioUrl   String
+  coverUrl   String          @default("")
+  /// Legacy popularity hint; video counts come from `_count.videos`.
+  useCount   Int             @default(0)
+  isOriginal Boolean         @default(false)
+  /// Creator of an original sound (null for library tracks).
+  authorId   String?
+  createdAt  DateTime        @default(now())
+  author     User?           @relation("SoundAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  videos     Video[]
+  favorites  SoundFavorite[]
+
+  @@index([authorId])
+}
+
+model SoundFavorite {
   id        String   @id @default(cuid())
-  title     String
-  artist    String
-  audioUrl  String
-  coverUrl  String   @default("")
-  useCount  Int      @default(0)
+  soundId   String
+  userId    String
   createdAt DateTime @default(now())
-  videos    Video[]
+  sound     Sound    @relation(fields: [soundId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([soundId, userId])
+  @@index([userId, createdAt])
 }
 
 model Video {
@@ -131,6 +154,7 @@ model Video {
 
   @@index([authorId, createdAt])
   @@index([createdAt])
+  @@index([soundId, createdAt])
 }
 
 model VideoLike {

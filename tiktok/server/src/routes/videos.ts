@@ -6,6 +6,7 @@ import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
 import { param } from '../lib/params.js'
 import { enrichVideo } from '../services/videos.js'
+import { createOriginalSound } from '../services/sounds.js'
 
 export const videosRouter = Router()
 
@@ -35,28 +36,39 @@ videosRouter.get('/:id', requireAuth, async (req: AuthRequest, res) => {
 
 videosRouter.use(requireAuth)
 
+const createVideoSchema = z.object({
+  videoUrl: z.string().trim().url('videoUrl must be a valid URL').max(2048),
+  coverUrl: z.string().trim().url('coverUrl must be a valid URL').max(2048).optional(),
+  caption: z.string().max(2200).default(''),
+  /** A sound picked via "Use this sound"; without one the upload gets its own original sound. */
+  soundId: z.string().trim().min(1).max(64).optional(),
+  duration: z.number().int().min(1).max(600).optional(),
+})
+
 videosRouter.post('/', async (req: AuthRequest, res) => {
-  const { videoUrl, coverUrl, caption, soundId, duration } = req.body as {
-    videoUrl: string
-    coverUrl?: string
-    caption?: string
-    soundId?: string
-    duration?: number
+  const body = createVideoSchema.safeParse(req.body ?? {})
+  if (!body.success) return res.status(400).json({ message: body.error.issues[0]?.message ?? 'Invalid body' })
+  const { videoUrl, coverUrl, caption, soundId, duration } = body.data
+  if (soundId && !(await prisma.sound.findUnique({ where: { id: soundId }, select: { id: true } }))) {
+    return res.status(404).json({ message: 'Sound not found' })
   }
-  if (!videoUrl) return res.status(400).json({ message: 'videoUrl required' })
-  const video = await prisma.video.create({
-    data: {
-      authorId: req.userId!,
-      videoUrl,
-      coverUrl: coverUrl ?? `https://picsum.photos/seed/cv${Date.now()}/400/700`,
-      caption: caption ?? '',
-      soundId: soundId || null,
-      duration: duration ?? 15,
-    },
+  const author = await prisma.user.findUnique({ where: { id: req.userId! } })
+  if (!author) return res.status(401).json({ message: 'Unauthorized' })
+  const video = await prisma.$transaction(async (tx) => {
+    const sound = soundId
+      ? await tx.sound.update({ where: { id: soundId }, data: { useCount: { increment: 1 } } })
+      : await createOriginalSound(tx, author, videoUrl)
+    return tx.video.create({
+      data: {
+        authorId: author.id,
+        videoUrl,
+        coverUrl: coverUrl ?? `https://picsum.photos/seed/cv${Date.now()}/400/700`,
+        caption,
+        soundId: sound.id,
+        duration: duration ?? 15,
+      },
+    })
   })
-  if (soundId) {
-    await prisma.sound.update({ where: { id: soundId }, data: { useCount: { increment: 1 } } })
-  }
   await linkHashtags(video.id, video.caption)
   res.status(201).json(await enrichVideo(video.id, req.userId!))
 })
@@ -137,5 +149,11 @@ videosRouter.delete('/:id', async (req: AuthRequest, res) => {
   const video = await prisma.video.findUnique({ where: { id: param(req, 'id') } })
   if (!video || video.authorId !== req.userId!) return res.status(403).json({ message: 'Forbidden' })
   await prisma.video.delete({ where: { id: video.id } })
+  // An original sound nobody else used goes away with its source video.
+  if (video.soundId) {
+    await prisma.sound.deleteMany({
+      where: { id: video.soundId, isOriginal: true, authorId: video.authorId, videos: { none: {} } },
+    })
+  }
   res.json({ ok: true })
 })

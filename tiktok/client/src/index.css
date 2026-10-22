@@ -63,6 +63,30 @@ html, body, #root {
   animation-play-state: paused;
 }
 
+/* Feed sound name ticker: the track holds the label twice, so sliding by half loops seamlessly. */
+.tt-marquee {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 90%, transparent);
+}
+.tt-marquee-track {
+  display: inline-flex;
+  animation: tt-marquee 9s linear infinite;
+}
+@keyframes tt-marquee {
+  to { transform: translateX(-50%); }
+}
+.tt-paused .tt-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-marquee-track,
+  .tt-disc-spin {
+    animation: none;
+  }
+}
+
 @keyframes tt-fade-scale {
   from { transform: scale(1.3); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
