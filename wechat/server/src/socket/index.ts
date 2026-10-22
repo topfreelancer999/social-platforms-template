@@ -5,12 +5,14 @@ import { createClient } from 'redis'
 import { config } from '../config.js'
 import { verifyAccessToken } from '../lib/auth.js'
 import { prisma } from '../lib/prisma.js'
-import { toPublicUser } from '../lib/user.js'
+import { createMessage } from '../services/groupChats.js'
+import { setIo } from './emitter.js'
 
 export async function setupSocket(httpServer: HttpServer) {
   const io = new Server(httpServer, {
     cors: { origin: config.clientUrl, credentials: true },
   })
+  setIo(io)
 
   try {
     if (config.redisUrl) {
@@ -40,36 +42,35 @@ export async function setupSocket(httpServer: HttpServer) {
     socket.join(`user:${userId}`)
 
     socket.on('message:send', async (data: { threadId: string; content: string }) => {
-      const msg = await prisma.message.create({
-        data: { threadId: data.threadId, senderId: userId, content: data.content },
-        include: { sender: true },
-      })
-      await prisma.thread.update({
-        where: { id: data.threadId },
-        data: { updatedAt: new Date() },
-      })
-      const others = await prisma.threadParticipant.findMany({
-        where: { threadId: data.threadId, userId: { not: userId } },
-      })
-      for (const o of others) {
-        await prisma.threadParticipant.update({
-          where: { id: o.id },
-          data: { unread: { increment: 1 } },
+      try {
+        const content = typeof data?.content === 'string' ? data.content.trim().slice(0, 5000) : ''
+        if (!content || typeof data.threadId !== 'string') return
+        const member = await prisma.threadParticipant.findUnique({
+          where: { threadId_userId: { threadId: data.threadId, userId } },
         })
-        io.to(`user:${o.userId}`).emit('message:new', {
-          threadId: data.threadId,
-          message: { ...msg, sender: toPublicUser(msg.sender) },
-        })
+        if (!member) return socket.emit('error:message', { message: 'You are not a member of this chat' })
+        const msg = await createMessage({ threadId: data.threadId, senderId: userId, content })
+        socket.emit('message:sent', msg)
+      } catch (e) {
+        console.error('message:send failed', e)
+        socket.emit('error:message', { message: 'Could not send message' })
       }
-      socket.emit('message:sent', { ...msg, sender: toPublicUser(msg.sender) })
     })
 
     socket.on('typing', (data: { threadId: string }) => {
       socket.to(`thread:${data.threadId}`).emit('typing', { userId, threadId: data.threadId })
     })
 
-    socket.on('thread:join', (threadId: string) => {
-      socket.join(`thread:${threadId}`)
+    socket.on('thread:join', async (threadId: string) => {
+      try {
+        if (typeof threadId !== 'string') return
+        const member = await prisma.threadParticipant.findUnique({
+          where: { threadId_userId: { threadId, userId } },
+        })
+        if (member) socket.join(`thread:${threadId}`)
+      } catch (e) {
+        console.error('thread:join failed', e)
+      }
     })
   })
 

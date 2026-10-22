@@ -26,6 +26,14 @@ Moments privacy demo (all passwords `password`): `mike.j@email.com` only shows t
 ## WeChat features
 
 - **Chats** — 1:1 and group messaging with read receipts (Socket.io + optional Redis)
+- **Group chats** (`/api/group-chats`, real-time via Socket.io `message:new`, `group:updated`, `group:notice`, `group:removed`)
+  - **Create** from "+" → **New Chat**: pick 2+ contacts; the group name is optional (unnamed groups show members' names joined). Group avatars are a grid of member avatars.
+  - **Chat Info** (`⋯` in a group chat): member grid with **+** (any member adds their contacts) and **−** (owner removes members), editable **Group Name**, **My Alias in Group**, **Mute Notifications**, **Leave Group** (a leaving owner hands ownership to an admin or the longest-standing member).
+  - **Roles**: one owner, up to 3 admins. Only the owner can set admins, transfer ownership (Chat Info → Manage Group) or remove members.
+  - **Group Notice**: owner/admins post it; it appears as a pinned banner and an `@All` "Group Notice" message, creates a notification for every member and is viewable from Chat Info.
+  - **@mentions**: typing `@` in a group opens a member picker (`@All` for owner/admins only; the server rejects `@All` from members with `403`). Mentions are stored server-side (`MessageMention`), highlighted in messages, notify the mentioned member, and show a red **[You were mentioned]** / **[@All]** prefix in the chat list until the chat is opened. `GET /api/group-chats/mentions` lists them.
+  - **Group QR Code**: generated locally (`qrcode` npm package) from an invite link valid for **7 days**. `/group-chat/join/:token` shows a group preview and **Join Group Chat**; expired links return `410`, unknown ones `404`. Joining posts "X joined the group chat via QR code". "+" → **Join Group via Link** accepts a pasted invite link.
+  - Demo: Alex owns **Project Team** (with a Group Notice) and is a member of Mike's **Weekend Hikers** (alias "Snack Captain", unread @mentions). Invite links: `/group-chat/join/demo-project-team` (active) and `/group-chat/join/demo-expired-invite` (expired).
 - **Moments** — social feed with likes and comments; post composer, per-user Moments album and Moment detail page
 - **Moments privacy** (enforced server-side in the feed, user albums, single-Moment fetch, likes/comments and search)
   - **Who can see** when publishing: Public (all friends), Private (only me), **Visible to** or **Don't share with** selected tags and/or contacts. Your own restricted posts show a lock / people icon with the audience.

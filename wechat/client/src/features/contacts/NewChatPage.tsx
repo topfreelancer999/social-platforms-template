@@ -1,87 +1,97 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { Button } from '@/components/ui/Button'
+import { useCreateGroupChat } from '@/features/group-chats/api'
+import { ContactPicker } from './ContactPicker'
+import { displayName, useContacts } from './api'
 
+/** "+" → New Chat: one contact starts a 1:1 chat, two or more create a group chat. */
 export function NewChatPage() {
   const [params] = useSearchParams()
   const preUserId = params.get('userId')
   const token = useAuthStore((s) => s.accessToken)
   const navigate = useNavigate()
-  const [toUserId, setToUserId] = useState(preUserId ?? '')
+  const { data } = useContacts()
+  const [selected, setSelected] = useState<string[]>(preUserId ? [preUserId] : [])
   const [content, setContent] = useState('Hello!')
   const [groupName, setGroupName] = useState('')
-  const [mode, setMode] = useState<'dm' | 'group'>('dm')
-
-  const { data: contacts } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: () => api<{ contacts: { id: string; displayName?: string; firstName: string; username: string }[] }>('/contacts', {
-      headers: authHeaders(token!),
-    }),
-    enabled: !!token,
-  })
+  const isGroup = selected.length >= 2
 
   const startDm = useMutation({
     mutationFn: () =>
       api<{ threadId: string }>('/messages/threads', {
         method: 'POST',
         headers: authHeaders(token!),
-        body: JSON.stringify({ toUserId, content }),
+        body: JSON.stringify({ toUserId: selected[0], content: content.trim() }),
       }),
     onSuccess: (res) => navigate(`/chat/${res.threadId}`),
   })
+  const createGroup = useCreateGroupChat()
 
-  const startGroup = useMutation({
-    mutationFn: () =>
-      api<{ threadId: string }>('/messages/groups', {
-        method: 'POST',
-        headers: authHeaders(token!),
-        body: JSON.stringify({ name: groupName, memberIds: [toUserId].filter(Boolean), content }),
-      }),
-    onSuccess: (res) => navigate(`/chat/${res.threadId}`),
-  })
+  const defaultName = selected
+    .map((id) => data?.contacts.find((c) => c.id === id))
+    .filter((c) => !!c)
+    .map((c) => displayName(c))
+    .join(', ')
+  const pending = startDm.isPending || createGroup.isPending
+  const error = startDm.error ?? createGroup.error
+
+  const submit = () => {
+    if (isGroup) {
+      createGroup.mutate(
+        { name: groupName.trim() || undefined, memberIds: selected },
+        { onSuccess: (res) => navigate(`/chat/${res.threadId}`) },
+      )
+    } else if (selected.length === 1 && content.trim()) {
+      startDm.mutate()
+    }
+  }
 
   return (
-    <div className="h-full flex flex-col bg-wx-header p-4">
-      <Link to="/contacts" className="text-sm text-wx-green mb-4">← Back</Link>
-      <h1 className="text-xl font-medium mb-4">New chat</h1>
-      <div className="flex gap-2 mb-4">
-        <button type="button" onClick={() => setMode('dm')} className={`px-3 py-1 rounded ${mode === 'dm' ? 'bg-wx-green text-white' : 'bg-wx-panel'}`}>Message</button>
-        <button type="button" onClick={() => setMode('group')} className={`px-3 py-1 rounded ${mode === 'group' ? 'bg-wx-green text-white' : 'bg-wx-panel'}`}>Group</button>
+    <div className="h-full flex flex-col bg-wx-bg">
+      <header className="h-11 flex items-center justify-center bg-wx-header border-b border-wx-border shrink-0 relative">
+        <Link to="/" className="absolute left-3 text-sm text-wx-text">Cancel</Link>
+        <h1 className="font-medium">Select Contacts</h1>
+        <button
+          type="button"
+          onClick={submit}
+          disabled={selected.length === 0 || (!isGroup && !content.trim()) || pending}
+          className="absolute right-3 bg-wx-green text-white text-sm px-3 py-1 rounded disabled:opacity-50"
+        >
+          {pending ? '…' : `Done${selected.length ? ` (${selected.length})` : ''}`}
+        </button>
+      </header>
+      <div className="flex-1 overflow-y-auto">
+        {error && <p className="px-4 pt-3 text-sm text-red-500">{error.message}</p>}
+        {isGroup && (
+          <>
+            <p className="px-4 pt-3 pb-1 text-xs text-wx-muted">Group name (optional)</p>
+            <input
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              maxLength={30}
+              placeholder={defaultName}
+              className="w-full bg-wx-panel px-4 py-3 text-[15px] outline-none border-y border-wx-border"
+            />
+          </>
+        )}
+        {selected.length === 1 && (
+          <>
+            <p className="px-4 pt-3 pb-1 text-xs text-wx-muted">First message</p>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-20 bg-wx-panel px-4 py-3 text-[15px] outline-none border-y border-wx-border resize-none"
+            />
+          </>
+        )}
+        <p className="px-4 pt-3 pb-1 text-xs text-wx-muted">
+          {selected.length === 0 ? 'Select one contact to chat, or several to start a group chat' : isGroup ? 'New group chat' : 'Select more contacts to create a group chat'}
+        </p>
+        <ContactPicker selected={selected} onChange={setSelected} />
       </div>
-      {mode === 'group' && (
-        <input
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-          placeholder="Group name"
-          className="w-full mb-3 bg-wx-panel rounded-lg px-3 py-2 text-sm border border-wx-border"
-        />
-      )}
-      <select
-        value={toUserId}
-        onChange={(e) => setToUserId(e.target.value)}
-        className="w-full mb-3 bg-wx-panel rounded-lg px-3 py-2 text-sm border border-wx-border"
-      >
-        <option value="">Select contact</option>
-        {contacts?.contacts.map((c) => (
-          <option key={c.id} value={c.id}>{c.displayName || c.firstName} (@{c.username})</option>
-        ))}
-      </select>
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className="w-full h-24 bg-wx-panel rounded-lg px-3 py-2 text-sm border border-wx-border mb-4"
-        placeholder="First message"
-      />
-      <Button
-        onClick={() => (mode === 'dm' ? startDm : startGroup).mutate()}
-        disabled={!toUserId || (mode === 'group' && !groupName.trim())}
-        className="w-full bg-wx-green"
-      >
-        Start chat
-      </Button>
     </div>
   )
 }

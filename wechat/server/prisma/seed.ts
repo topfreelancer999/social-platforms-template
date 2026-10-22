@@ -1,4 +1,4 @@
-import { GroupPrivacy, MomentVisibility, MomentsRange, NotificationType } from '@prisma/client'
+import { ChatRole, GroupPrivacy, MessageType, MomentVisibility, MomentsRange, NotificationType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../src/lib/prisma.js'
 
@@ -18,6 +18,8 @@ async function main() {
   await prisma.channelPost.deleteMany()
   await prisma.channelFollow.deleteMany()
   await prisma.channel.deleteMany()
+  await prisma.groupChatInvite.deleteMany()
+  await prisma.messageMention.deleteMany()
   await prisma.message.deleteMany()
   await prisma.threadParticipant.deleteMany()
   await prisma.thread.deleteMany()
@@ -113,25 +115,114 @@ async function main() {
   })
   await prisma.thread.update({ where: { id: dm.id }, data: { updatedAt: new Date() } })
 
-  await prisma.thread.create({
+  // ── Group chats: Alex owns "Project Team" and is a member of Mike's "Weekend Hikers" ──
+  const MIN = 60000
+  const ago = (ms: number) => new Date(Date.now() - ms)
+  const notice = 'Sprint demo is on Friday at 4pm 🎯 Please upload your slides to the shared drive by Thursday evening.'
+  const projectTeam = await prisma.thread.create({
     data: {
       isGroup: true,
       name: 'Project Team',
-      avatarUrl: 'https://picsum.photos/seed/wxteam/96/96',
+      announcement: notice,
+      announcementAt: ago(90 * MIN),
+      announcementById: alex.id,
       participants: {
-        create: [alex, sarah, mike, emma].map((u) => ({
-          userId: u.id,
-          isAdmin: u.id === alex.id,
-          unread: u.id === mike.id ? 1 : 0,
-        })),
-      },
-      messages: {
         create: [
-          { senderId: alex.id, content: 'Team sync at 3pm today' },
-          { senderId: mike.id, content: 'Got it 👌' },
+          { userId: alex.id, role: ChatRole.OWNER, joinedAt: ago(30 * 24 * 60 * MIN) },
+          { userId: sarah.id, role: ChatRole.ADMIN, joinedAt: ago(30 * 24 * 60 * MIN), unread: 2, lastReadAt: ago(100 * MIN) },
+          { userId: mike.id, joinedAt: ago(30 * 24 * 60 * MIN), unread: 3, lastReadAt: ago(100 * MIN) },
+          { userId: emma.id, joinedAt: ago(30 * 24 * 60 * MIN) },
         ],
       },
     },
+  })
+  await prisma.message.create({ data: { threadId: projectTeam.id, senderId: alex.id, content: 'Team sync at 3pm today', createdAt: ago(120 * MIN), read: true } })
+  await prisma.message.create({ data: { threadId: projectTeam.id, senderId: mike.id, content: 'Got it 👌', createdAt: ago(110 * MIN), read: true } })
+  await prisma.message.create({
+    data: { threadId: projectTeam.id, senderId: alex.id, content: notice, type: MessageType.NOTICE, mentionAll: true, createdAt: ago(90 * MIN) },
+  })
+  await prisma.message.create({
+    data: {
+      threadId: projectTeam.id,
+      senderId: sarah.id,
+      content: '@Mike Jones can you share the latest build before the demo?',
+      createdAt: ago(60 * MIN),
+      mentions: { create: { userId: mike.id } },
+    },
+  })
+  await prisma.message.create({
+    data: {
+      threadId: projectTeam.id,
+      senderId: emma.id,
+      content: '@Alex Morgan I booked the big meeting room for Friday 👍',
+      createdAt: ago(45 * MIN),
+      read: true,
+      mentions: { create: { userId: alex.id } },
+    },
+  })
+  await prisma.thread.update({ where: { id: projectTeam.id }, data: { updatedAt: ago(45 * MIN) } })
+
+  const hikers = await prisma.thread.create({
+    data: {
+      isGroup: true,
+      name: 'Weekend Hikers ⛰️',
+      participants: {
+        create: [
+          { userId: mike.id, role: ChatRole.OWNER, joinedAt: ago(14 * 24 * 60 * MIN) },
+          { userId: emma.id, role: ChatRole.ADMIN, joinedAt: ago(14 * 24 * 60 * MIN) },
+          // Alex last read the chat before the @mentions below, so the chat list shows "[You were mentioned]".
+          { userId: alex.id, alias: 'Snack Captain', joinedAt: ago(13 * 24 * 60 * MIN), unread: 3, lastReadAt: ago(40 * MIN) },
+          { userId: sarah.id, joinedAt: ago(10 * 24 * 60 * MIN), unread: 3, lastReadAt: ago(40 * MIN) },
+          { userId: david.id, joinedAt: ago(9 * 24 * 60 * MIN), unread: 3, lastReadAt: ago(40 * MIN) },
+        ],
+      },
+    },
+  })
+  await prisma.message.create({ data: { threadId: hikers.id, senderId: david.id, content: 'David Lee joined the group chat via QR code', type: MessageType.SYSTEM, createdAt: ago(9 * 24 * 60 * MIN), read: true } })
+  await prisma.message.create({ data: { threadId: hikers.id, senderId: mike.id, content: 'Who is in for Huangshan this Saturday?', createdAt: ago(50 * MIN), read: true } })
+  await prisma.message.create({
+    data: { threadId: hikers.id, senderId: mike.id, content: "@All Bus leaves at 7am sharp from People's Square 🚌", mentionAll: true, createdAt: ago(30 * MIN) },
+  })
+  await prisma.message.create({
+    data: {
+      threadId: hikers.id,
+      senderId: emma.id,
+      content: '@Snack Captain you promised to bring the snacks 😄',
+      createdAt: ago(20 * MIN),
+      mentions: { create: { userId: alex.id } },
+    },
+  })
+  await prisma.message.create({ data: { threadId: hikers.id, senderId: sarah.id, content: 'Count me in!', createdAt: ago(10 * MIN) } })
+  await prisma.thread.update({ where: { id: hikers.id }, data: { updatedAt: ago(10 * MIN) } })
+
+  // Group QR codes: one active (6 days left) and one expired, for the join flow.
+  const DAY_MS = 24 * 60 * MIN
+  await prisma.groupChatInvite.create({
+    data: { token: 'demo-project-team', threadId: projectTeam.id, createdById: alex.id, createdAt: ago(DAY_MS), expiresAt: new Date(Date.now() + 6 * DAY_MS) },
+  })
+  await prisma.groupChatInvite.create({
+    data: { token: 'demo-expired-invite', threadId: hikers.id, createdById: mike.id, createdAt: ago(8 * DAY_MS), expiresAt: ago(DAY_MS) },
+  })
+
+  await prisma.notification.create({
+    data: {
+      userId: alex.id,
+      actorId: emma.id,
+      type: NotificationType.GROUP_MENTION,
+      title: 'Emma Wilson mentioned you in Weekend Hikers ⛰️',
+      body: '@Snack Captain you promised to bring the snacks 😄',
+      link: `/chat/${hikers.id}`,
+    },
+  })
+  await prisma.notification.createMany({
+    data: [sarah, mike, emma].map((u) => ({
+      userId: u.id,
+      actorId: alex.id,
+      type: NotificationType.GROUP_NOTICE,
+      title: 'Group Notice in Project Team',
+      body: notice,
+      link: `/chat/${projectTeam.id}`,
+    })),
   })
 
   // ── Moments: a mix of public and restricted posts ──
@@ -290,6 +381,7 @@ async function main() {
   console.log('Moments privacy demo users: mike.j@email.com (3-day range), lily.c@email.com (not a contact of Alex)')
   console.log(`Official account: /channels/${channel.slug}`)
   console.log(`Community: /groups/${group.id}`)
+  console.log('Group chat invites: /group-chat/join/demo-project-team (active), /group-chat/join/demo-expired-invite (expired)')
 }
 
 main()

@@ -28,6 +28,12 @@ import { PageDetailPage } from '@/features/pages/PageDetailPage'
 import { FeedbackPage } from '@/features/feedback/FeedbackPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { EventsPage } from '@/features/events/EventsPage'
+import { GroupInfoPage } from '@/features/group-chats/GroupInfoPage'
+import { GroupNoticePage } from '@/features/group-chats/GroupNoticePage'
+import { GroupQrPage } from '@/features/group-chats/GroupQrPage'
+import { GroupAddMembersPage } from '@/features/group-chats/GroupAddMembersPage'
+import { GroupManagePage } from '@/features/group-chats/GroupManagePage'
+import { JoinGroupPage } from '@/features/group-chats/JoinGroupPage'
 
 function Private({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
@@ -54,6 +60,12 @@ export function AppRouter() {
       <Route element={<Private><WeChatLayout /></Private>}>
         <Route index element={<ChatsPage />} />
         <Route path="chat/:threadId" element={<ChatPage />} />
+        <Route path="group-chat/join/:token?" element={<JoinGroupPage />} />
+        <Route path="group-chat/:threadId/info" element={<GroupInfoPage />} />
+        <Route path="group-chat/:threadId/notice" element={<GroupNoticePage />} />
+        <Route path="group-chat/:threadId/qr" element={<GroupQrPage />} />
+        <Route path="group-chat/:threadId/add" element={<GroupAddMembersPage />} />
+        <Route path="group-chat/:threadId/manage" element={<GroupManagePage />} />
         <Route path="contacts" element={<ContactsPage />} />
         <Route path="contacts/new" element={<NewChatPage />} />
         <Route path="contacts/tags" element={<TagsPage />} />

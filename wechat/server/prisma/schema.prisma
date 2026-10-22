@@ -11,6 +11,17 @@ enum MessageType {
   TEXT
   IMAGE
   DOCUMENT
+  /// Grey centred line such as "X joined the group chat via QR code"
+  SYSTEM
+  /// Group Notice (announcement) posted by the owner or an admin
+  NOTICE
+}
+
+/// Role of a member inside a group chat (Thread with isGroup = true).
+enum ChatRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
 
 enum GroupPrivacy {
@@ -39,6 +50,8 @@ enum NotificationType {
   MOMENT_LIKE
   MOMENT_COMMENT
   REVIEW
+  GROUP_NOTICE
+  GROUP_MENTION
 }
 
 model User {
@@ -80,6 +93,8 @@ model User {
   contactTags        ContactTag[]
   tagMemberships     ContactTagMember[]
   momentAudiences    MomentAudience[]
+  messageMentions    MessageMention[]
+  groupChatInvites   GroupChatInvite[]
 }
 
 /// Directional contact row: one row per side of a friendship. Two rows (A->B, B->A) = mutual friends.
@@ -139,40 +154,85 @@ model UserSettings {
 }
 
 model Thread {
-  id           String              @id @default(cuid())
-  isGroup      Boolean             @default(false)
-  name         String?
-  avatarUrl    String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  participants ThreadParticipant[]
-  messages     Message[]
+  id               String              @id @default(cuid())
+  isGroup          Boolean             @default(false)
+  /// Group chats without a name show their members' names joined (as in WeChat).
+  name             String?
+  avatarUrl        String?
+  /// Current Group Notice; empty = none.
+  announcement     String              @default("")
+  announcementAt   DateTime?
+  announcementById String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  participants     ThreadParticipant[]
+  messages         Message[]
+  invites          GroupChatInvite[]
 }
 
 model ThreadParticipant {
-  id       String  @id @default(cuid())
-  threadId String
-  userId   String
-  unread   Int     @default(0)
-  isAdmin  Boolean @default(false)
-  thread   Thread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  threadId   String
+  userId     String
+  unread     Int      @default(0)
+  /// Group chats only; 1:1 chats keep MEMBER.
+  role       ChatRole @default(MEMBER)
+  /// "My alias in group"
+  alias      String   @default("")
+  muted      Boolean  @default(false)
+  /// Mentions newer than this are shown as "[You were mentioned]" in the chat list.
+  lastReadAt DateTime @default(now())
+  joinedAt   DateTime @default(now())
+  thread     Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([threadId, userId])
+  @@index([userId])
 }
 
 model Message {
-  id        String      @id @default(cuid())
-  threadId  String
-  senderId  String
-  content   String
-  type      MessageType @default(TEXT)
-  mediaUrl  String?
-  read      Boolean     @default(false)
-  delivered Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  thread    Thread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  sender    User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  id         String           @id @default(cuid())
+  threadId   String
+  senderId   String
+  content    String
+  type       MessageType      @default(TEXT)
+  mediaUrl   String?
+  /// "@All" (owner/admins only; Group Notices too)
+  mentionAll Boolean          @default(false)
+  read       Boolean          @default(false)
+  delivered  Boolean          @default(true)
+  createdAt  DateTime         @default(now())
+  thread     Thread           @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender     User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  mentions   MessageMention[]
+
+  @@index([threadId, createdAt])
+}
+
+/// One row per member @mentioned in a group message.
+model MessageMention {
+  id        String  @id @default(cuid())
+  messageId String
+  userId    String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+}
+
+/// Group QR code / invite link. Valid for 7 days like WeChat's group QR codes.
+model GroupChatInvite {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  threadId    String
+  createdById String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  thread      Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
 }
 
 model Moment {

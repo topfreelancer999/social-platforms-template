@@ -13,7 +13,11 @@ export function WeChatLayout() {
   const user = useAuthStore((s) => s.user)
   const loc = useLocation()
   const inChat = loc.pathname.startsWith('/chat/')
-  const hideTabs = inChat || loc.pathname.startsWith('/moments/post')
+  const hideTabs =
+    inChat ||
+    loc.pathname.startsWith('/moments/post') ||
+    loc.pathname.startsWith('/group-chat/') ||
+    loc.pathname.startsWith('/contacts/new')
 
   if (inChat) {
     return (
