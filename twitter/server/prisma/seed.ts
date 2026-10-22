@@ -165,6 +165,47 @@ async function main() {
   await quote(mike.id, deletedOriginal.id, 'Respectfully… no.', 55)
   await prisma.tweet.delete({ where: { id: deletedOriginal.id } })
 
+  // --- Threads (self-reply chains) ---------------------------------------------
+  // Each post replies to the previous one and points at the root; posts are a
+  // minute apart, oldest first.
+  const seedThread = async (authorId: string, posts: string[], m: number) => {
+    let rootId: string | null = null
+    let parentId: string | null = null
+    for (const [i, content] of posts.entries()) {
+      const t: { id: string } = await prisma.tweet.create({
+        data: { authorId, content, replyToId: parentId, threadRootId: rootId, createdAt: minutesAgo(m - i) },
+      })
+      await linkHashtags(t.id, content)
+      rootId ??= t.id
+      parentId = t.id
+    }
+    return rootId!
+  }
+
+  const alexThread = await seedThread(alex.id, [
+    'We just crossed 10k users at TechStart. A few lessons from year one 🧵 #startups',
+    'Talk to users every week. Not surveys, actual calls. Half of our roadmap came out of 15-minute chats.',
+    "Ship small. Our best releases were the ones nobody announced: they quietly fixed something people hit every day.",
+    "Hire for curiosity. The tools change every year; people who love figuring things out don't. #tech",
+  ], 8)
+  await seedThread(david.id, [
+    'How we cut our API p95 latency from 900ms to 120ms 👇 #tech',
+    'Step 1: measure. We added request tracing and found 70% of the time was spent in three N+1 queries.',
+    'Step 2: batch those queries with a dataloader. That alone took p95 down to ~350ms.',
+    'Step 3: cache the hot read paths for 30s. Most users never notice the staleness, and our DB load dropped by half.',
+    'Step 4: stop doing work nobody looks at. We moved two analytics writes onto a queue.',
+  ], 30)
+  await seedThread(sarah.id, [
+    'Golden hour tips from a week of shooting in Big Sur 📸',
+    'Get there an hour early. The best light lasts about 20 minutes and you will want to be set up already.',
+    "Shoot into the sun and expose for the highlights. You can lift the shadows later; blown skies don't come back.",
+  ], 45)
+  await prisma.tweet.create({
+    data: { authorId: sarah.id, content: 'Saving this whole thread 🙌', replyToId: alexThread, createdAt: minutesAgo(2) },
+  })
+  await prisma.tweetLike.create({ data: { tweetId: alexThread, userId: sarah.id } })
+  await prisma.tweetLike.create({ data: { tweetId: alexThread, userId: david.id } })
+
   await prisma.notification.createMany({
     data: [
       { userId: alex.id, actorId: mike.id, type: NotificationType.RETWEET, title: 'Mike Jones reposted your post', body: seeded[0].content, link: `/tweet/${seeded[0].id}`, createdAt: minutesAgo(35) },

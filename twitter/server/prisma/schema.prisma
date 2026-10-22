@@ -103,12 +103,17 @@ model Tweet {
   /// original (quoteTweetId is then nulled) so the UI can show "unavailable".
   isQuote      Boolean  @default(false)
   communityId  String?
+  /// First post of the author's self-reply chain (thread) this post continues.
+  /// Null on the thread root itself and on posts outside a thread.
+  threadRootId String?
   createdAt    DateTime @default(now())
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   replyTo      Tweet?   @relation("Replies", fields: [replyToId], references: [id], onDelete: SetNull)
   replies      Tweet[]  @relation("Replies")
   quoteTweet   Tweet?   @relation("Quotes", fields: [quoteTweetId], references: [id], onDelete: SetNull)
   quotes       Tweet[]  @relation("Quotes")
+  threadRoot   Tweet?   @relation("ThreadPosts", fields: [threadRootId], references: [id], onDelete: SetNull)
+  threadPosts  Tweet[]  @relation("ThreadPosts")
   community    Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
   likes        TweetLike[]
   retweets     Retweet[]
@@ -116,6 +121,7 @@ model Tweet {
   hashtags     TweetHashtag[]
 
   @@index([quoteTweetId, createdAt])
+  @@index([threadRootId, createdAt])
 }
 
 model TweetLike {

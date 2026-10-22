@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
-import { Home, Bell, Mail, Search, Users } from 'lucide-react'
+import { Home, Bell, Feather, Mail, Search, Users } from 'lucide-react'
 import { TopBar } from './TopBar'
 import { RightRail } from './RightRail'
 import { useAuthStore } from '@/stores/authStore'
+import { ComposeModal } from '@/features/feed/ComposeModal'
 
 const nav = [
   { to: '/', icon: Home, label: 'Home' },
@@ -14,12 +16,13 @@ const nav = [
 
 export function AppShell() {
   const user = useAuthStore((s) => s.user)
+  const [composing, setComposing] = useState(false)
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       <div className="max-w-[1280px] mx-auto flex">
-        <aside className="hidden sm:flex flex-col w-[68px] xl:w-[275px] shrink-0 px-2 xl:px-3 py-2 min-h-screen border-r border-x-border-light dark:border-x-border sticky top-0">
+        <aside className="hidden sm:flex flex-col w-[68px] xl:w-[275px] shrink-0 px-2 xl:px-3 py-2 h-screen self-start border-r border-x-border-light dark:border-x-border sticky top-0">
           <Link to="/" className="text-2xl font-black p-3 mb-2 hidden xl:block">𝕏</Link>
-          <nav className="flex flex-col gap-1 flex-1">
+          <nav className="flex flex-col gap-1">
             {nav.map(({ to, icon: Icon, label }) => (
               <Link
                 key={to}
@@ -34,12 +37,19 @@ export function AppShell() {
               <span className="hidden xl:inline text-xl font-medium">Profile</span>
             </Link>
           </nav>
-          <Link
-            to="/"
+          <button
+            onClick={() => setComposing(true)}
             className="hidden xl:flex bg-x-primary hover:bg-x-primary-hover text-white font-bold rounded-full py-3 justify-center mt-4"
           >
             Post
-          </Link>
+          </button>
+          <button
+            onClick={() => setComposing(true)}
+            aria-label="Post"
+            className="xl:hidden h-12 w-12 mx-auto flex items-center justify-center bg-x-primary hover:bg-x-primary-hover text-white rounded-full mt-4"
+          >
+            <Feather size={22} />
+          </button>
         </aside>
         <main className="flex-1 min-w-0 max-w-[600px] border-r border-x-border-light dark:border-x-border min-h-screen">
           <Outlet />
@@ -51,8 +61,16 @@ export function AppShell() {
           <Link key={to} to={to} className="p-2 text-x-text-light dark:text-x-text"><Icon size={24} /></Link>
         ))}
       </nav>
+      <button
+        onClick={() => setComposing(true)}
+        aria-label="Post"
+        className="sm:hidden fixed right-4 bottom-20 z-40 h-14 w-14 flex items-center justify-center rounded-full bg-x-primary hover:bg-x-primary-hover text-white shadow-lg"
+      >
+        <Feather size={24} />
+      </button>
       <div className="h-14 sm:hidden" />
       <TopBar />
+      {composing && <ComposeModal onClose={() => setComposing(false)} />}
     </div>
   )
 }

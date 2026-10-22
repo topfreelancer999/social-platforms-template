@@ -2,15 +2,13 @@ import { useState } from 'react'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { Avatar } from '@/components/ui/Avatar'
+import { ThreadComposer } from './ThreadComposer'
 import { TweetCard } from './TweetCard'
-import { useCreateTweet } from './hooks'
 import type { TimelinePage } from './types'
 
 export function FeedPage() {
-  const { user, accessToken } = useAuthStore()
+  const accessToken = useAuthStore((s) => s.accessToken)
   const [tab, setTab] = useState('for-you')
-  const [text, setText] = useState('')
   const { data: trending } = useQuery({
     queryKey: ['trending'],
     queryFn: () => api<{ tag: string; tweetCount: number }[]>('/trending', { headers: authHeaders(accessToken) }),
@@ -22,9 +20,7 @@ export function FeedPage() {
     getNextPageParam: (last, pages) => (last.hasMore ? pages.length + 1 : undefined),
     initialPageParam: 1,
   })
-  const createTweet = useCreateTweet()
   const tweets = data?.pages.flatMap((p) => p.items) ?? []
-  const remaining = 280 - text.length
   return (
     <div>
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-black/80 backdrop-blur border-b border-x-border-light dark:border-x-border">
@@ -45,26 +41,8 @@ export function FeedPage() {
           ))}
         </div>
       </header>
-      <div className="border-b border-x-border-light dark:border-x-border p-4 flex gap-3">
-        <Avatar src={user?.avatarUrl} size="lg" />
-        <div className="flex-1">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value.slice(0, 280))}
-            className="w-full bg-transparent text-lg outline-none resize-none min-h-[80px] placeholder:text-x-muted"
-            placeholder="What is happening?!"
-          />
-          <div className="flex justify-between items-center mt-2">
-            <span className={`text-xs ${remaining < 20 ? 'text-orange-500' : 'text-x-muted'}`}>{remaining}</span>
-            <button
-              onClick={() => text.trim() && createTweet.mutate({ content: text }, { onSuccess: () => setText('') })}
-              disabled={!text.trim() || createTweet.isPending}
-              className="bg-x-primary hover:bg-x-primary-hover text-white font-bold rounded-full px-4 py-1.5 text-sm disabled:opacity-50"
-            >
-              Post
-            </button>
-          </div>
-        </div>
+      <div className="border-b border-x-border-light dark:border-x-border px-4 pt-4 pb-3">
+        <ThreadComposer />
       </div>
       {isLoading && <p className="p-4 text-center text-x-muted text-sm">Loading…</p>}
       {isError && <p className="p-4 text-center text-red-500 text-sm">Couldn't load posts. Try again later.</p>}

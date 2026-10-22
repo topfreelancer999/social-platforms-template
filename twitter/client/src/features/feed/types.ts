@@ -23,6 +23,10 @@ export interface Tweet {
   quoteTweetId: string | null
   isQuote?: boolean
   communityId: string | null
+  /** Root of the author's thread this post continues; null on roots and lone posts. */
+  threadRootId?: string | null
+  /** Posts in the thread this post starts (1 when it is not a thread root). */
+  threadLength?: number
   createdAt: string
   author: TweetAuthor
   quoteTweet: QuotedTweet | null
@@ -45,4 +49,18 @@ export interface TimelinePage {
   page: number
   hasMore: boolean
   total?: number
+}
+
+export interface TweetDetail {
+  tweet: Tweet
+  /** Earlier posts of the author's thread, root first. */
+  threadBefore: Tweet[]
+  /** The author's thread continuation after this post. */
+  threadAfter: Tweet[]
+  replies: Tweet[]
+}
+
+export interface ThreadResult {
+  rootId: string
+  items: Tweet[]
 }

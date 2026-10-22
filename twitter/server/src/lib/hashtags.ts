@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from './prisma.js'
 
 const TAG_RE = /#([a-zA-Z0-9_]{1,50})/g
@@ -8,15 +9,16 @@ export function extractHashtags(content: string): string[] {
   return [...tags]
 }
 
-export async function linkHashtags(tweetId: string, content: string) {
+/** Pass `db` to link inside an interactive transaction. */
+export async function linkHashtags(tweetId: string, content: string, db: Prisma.TransactionClient = prisma) {
   const tags = extractHashtags(content)
   for (const tag of tags) {
-    const hashtag = await prisma.hashtag.upsert({
+    const hashtag = await db.hashtag.upsert({
       where: { tag },
       create: { tag },
       update: {},
     })
-    await prisma.tweetHashtag.upsert({
+    await db.tweetHashtag.upsert({
       where: { tweetId_hashtagId: { tweetId, hashtagId: hashtag.id } },
       create: { tweetId, hashtagId: hashtag.id },
       update: {},

@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient, type Query, type QueryClient } from '@tanstack/react-query'
 import { api, authHeaders } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import type { TimelinePage, Tweet } from './types'
+import type { ThreadResult, TimelinePage, Tweet } from './types'
 
 /** Query roots whose cached data may contain tweets. */
 const TWEET_QUERY_ROOTS = new Set(['feed', 'profile', 'tweet', 'quotes', 'community'])
@@ -78,6 +78,32 @@ export function useCreateTweet() {
   return useMutation({
     mutationFn: (body: { content: string; quoteTweetId?: string; replyToId?: string; communityId?: string }) =>
       api<Tweet>('/tweets', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) }),
+    onSuccess: () => invalidateTweetQueries(qc),
+  })
+}
+
+/** Publish a multi-post thread (all posts or none). */
+export function useCreateThread() {
+  const token = useAuthStore((s) => s.accessToken)
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { posts: { content: string }[]; communityId?: string }) =>
+      api<ThreadResult>('/tweets/thread', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) }),
+    onSuccess: () => invalidateTweetQueries(qc),
+  })
+}
+
+/** "Add another post" to your own thread containing `id`. */
+export function useExtendThread() {
+  const token = useAuthStore((s) => s.accessToken)
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, posts }: { id: string; posts: { content: string }[] }) =>
+      api<ThreadResult>(`/tweets/${id}/thread`, {
+        method: 'POST',
+        headers: authHeaders(token),
+        body: JSON.stringify({ posts }),
+      }),
     onSuccess: () => invalidateTweetQueries(qc),
   })
 }

@@ -6,7 +6,7 @@ import { linkHashtags } from '../lib/hashtags.js'
 import { config } from '../config.js'
 import type { AuthRequest } from '../middleware/auth.js'
 import { requireAuth } from '../middleware/auth.js'
-import { enrichTweet } from '../services/tweets.js'
+import { MAX_THREAD_POSTS, createThread, enrichTweet, extendThread, getThread } from '../services/tweets.js'
 import { getBlockedIds, isBlocked } from '../services/follows.js'
 import { notify, retractNotification, snippet } from '../services/notifications.js'
 import { param } from '../lib/params.js'
@@ -29,6 +29,38 @@ const createTweetSchema = z
   })
   .refine((d) => d.content.trim().length > 0 || !!d.imageUrl, { message: 'Content required' })
 
+const threadPostSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, 'Post cannot be empty')
+    .max(config.maxTweetLength, `Max ${config.maxTweetLength} characters`),
+  imageUrl: z.string().url().nullish().or(z.literal('')),
+})
+
+const createThreadSchema = z.object({
+  posts: z
+    .array(threadPostSchema, { required_error: 'A thread needs at least 2 posts' })
+    .min(2, 'A thread needs at least 2 posts')
+    .max(MAX_THREAD_POSTS, `A thread can have at most ${MAX_THREAD_POSTS} posts`),
+  communityId: optionalId,
+})
+
+const extendThreadSchema = z.object({
+  posts: z
+    .array(threadPostSchema, { required_error: 'Add at least one post' })
+    .min(1, 'Add at least one post')
+    .max(MAX_THREAD_POSTS - 1, `A thread can have at most ${MAX_THREAD_POSTS} posts`),
+})
+
+/** First validation message, prefixed with the 1-based post number when it is about one post. */
+function threadIssue(error: z.ZodError) {
+  const issue = error.issues[0]
+  if (!issue) return 'Invalid input'
+  const [field, index] = issue.path
+  return field === 'posts' && typeof index === 'number' ? `Post ${index + 1}: ${issue.message}` : issue.message
+}
+
 const pageQuery = z.object({ page: z.coerce.number().int().min(1).max(500).default(1) })
 
 const QUOTES_PAGE_SIZE = 20
@@ -45,7 +77,10 @@ tweetsRouter.post('/', async (req: AuthRequest, res) => {
   const { content, imageUrl, replyToId, quoteTweetId, communityId } = parsed.data
   const userId = req.userId!
 
-  if (replyToId && !(await prisma.tweet.findUnique({ where: { id: replyToId }, select: { id: true } }))) {
+  const parent = replyToId
+    ? await prisma.tweet.findUnique({ where: { id: replyToId }, select: { id: true, authorId: true, threadRootId: true } })
+    : null
+  if (replyToId && !parent) {
     return res.status(404).json({ message: 'Post you are replying to was not found' })
   }
   const quoted = quoteTweetId
@@ -61,7 +96,9 @@ tweetsRouter.post('/', async (req: AuthRequest, res) => {
       authorId: userId,
       content: content.trim(),
       imageUrl: imageUrl || null,
-      replyToId: replyToId || null,
+      replyToId: parent?.id ?? null,
+      // Replying to yourself continues (or starts) your thread.
+      threadRootId: parent && parent.authorId === userId ? (parent.threadRootId ?? parent.id) : null,
       quoteTweetId: quoted?.id ?? null,
       isQuote: !!quoted,
       communityId: communityId || null,
@@ -83,20 +120,52 @@ tweetsRouter.post('/', async (req: AuthRequest, res) => {
   res.status(201).json(await enrichTweet(tweet.id, userId))
 })
 
+/** Publish a multi-post thread in one transaction. */
+tweetsRouter.post('/thread', async (req: AuthRequest, res) => {
+  const parsed = createThreadSchema.safeParse(req.body ?? {})
+  if (!parsed.success) return res.status(400).json({ message: threadIssue(parsed.error) })
+  const items = await createThread(req.userId!, parsed.data.posts, parsed.data.communityId)
+  res.status(201).json({ rootId: items[0]?.id, items })
+})
+
+/** The whole thread containing a post, root first. */
+tweetsRouter.get('/:id/thread', async (req: AuthRequest, res) => {
+  const thread = await getThread(param(req, 'id'), req.userId!)
+  if (!thread) return res.status(404).json({ message: 'Not found' })
+  res.json(thread)
+})
+
+/** "Add another post": append to the end of your own thread. */
+tweetsRouter.post('/:id/thread', async (req: AuthRequest, res) => {
+  const parsed = extendThreadSchema.safeParse(req.body ?? {})
+  if (!parsed.success) return res.status(400).json({ message: threadIssue(parsed.error) })
+  const result = await extendThread(param(req, 'id'), req.userId!, parsed.data.posts)
+  if (result.status !== 201) return res.status(result.status).json({ message: result.message })
+  res.status(201).json({ rootId: result.rootId, items: result.items })
+})
+
 tweetsRouter.get('/:id', async (req: AuthRequest, res) => {
   const id = param(req, 'id')
   const tweet = await enrichTweet(id, req.userId!)
   if (!tweet) return res.status(404).json({ message: 'Not found' })
+  // The author's thread around this post: earlier posts render above it and
+  // the continuation renders before everyone else's replies.
+  const thread = (await getThread(id, req.userId!))?.items ?? []
+  const at = thread.findIndex((t) => t.id === id)
+  const threadBefore = at > 0 ? thread.slice(0, at) : []
+  const threadAfter = at >= 0 ? thread.slice(at + 1) : []
+  const threadIds = new Set(thread.map((t) => t.id))
   const replies = await prisma.tweet.findMany({
     where: { replyToId: id },
     orderBy: { createdAt: 'asc' },
   })
   const replyItems = []
   for (const r of replies) {
+    if (threadIds.has(r.id)) continue
     const e = await enrichTweet(r.id, req.userId!)
     if (e) replyItems.push(e)
   }
-  res.json({ tweet, replies: replyItems })
+  res.json({ tweet, threadBefore, threadAfter, replies: replyItems })
 })
 
 /** Quote posts of a post, newest first. */
