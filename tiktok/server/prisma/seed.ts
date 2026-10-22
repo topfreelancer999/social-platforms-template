@@ -12,7 +12,7 @@ const SAMPLE_VIDEOS = [
   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
   'https://media.w3.org/2010/05/bunny/trailer.mp4',
   'https://test-videos.co.uk/vids/jellyfish/mp4/h264/360/Jellyfish_360_10s_1MB.mp4',
-  'https://media.w3.org/2010/05/bunny/movie.mp4',
+  'https://media.w3.org/2010/05/video/movie_300.mp4',
   'https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_4K.webm/Sintel_movie_4K.webm.480p.vp9.webm',
 ]
 
@@ -109,7 +109,7 @@ async function main() {
   const [alexOriginal, sarahOriginal, ninaOriginal] = [
     await original(alex, SAMPLE_VIDEOS[0]),
     await original(sarah, SAMPLE_VIDEOS[2]),
-    await original(nina, SAMPLE_VIDEOS[4]),
+    await original(nina, SAMPLE_VIDEOS[5]),
   ]
   const library = []
   for (const track of LIBRARY_SOUNDS) library.push(await prisma.sound.create({ data: track }))
